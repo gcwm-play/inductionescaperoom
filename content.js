@@ -87,9 +87,8 @@ window.CPF_CONTENT = {
   // STAGE 2 — Two emails, acrostic first letters spell MISSION / VISION
   // ---------------------------------------------------------------------
   stage2: {
-    title: "Stage 2 · Recovered Mail",
-    intro:
-      "The network drive is back up. Two emails from around the time of the outage might hold a clue. Read carefully — the first letter of each paragraph spells something out.",
+    title: "Stage 2 - Recover the hidden word",
+    intro: "Read each email below carefully. Something's hidden in each one.",
     emails: [
       {
         from: "IT Support <it-support@cpf.internal>",

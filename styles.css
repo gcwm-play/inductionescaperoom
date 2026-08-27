@@ -298,7 +298,6 @@ input:focus { outline: none; border-color: var(--gold-500); }
 .email-open__subject { font-size: 1.05rem; font-weight: 800; color: var(--navy-900); margin-bottom: 4px; }
 .email-open__from { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 14px; }
 .email-open p { color: var(--ink); font-size: 0.95rem; }
-.email-open p:first-letter { font-weight: 800; color: var(--navy-800); font-size: 1.1em; }
 
 .tile-row {
   display: flex;
