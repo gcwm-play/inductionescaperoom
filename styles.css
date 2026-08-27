@@ -299,6 +299,35 @@ input:focus { outline: none; border-color: var(--gold-500); }
 .email-open__from { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 14px; }
 .email-open p { color: var(--ink); font-size: 0.95rem; }
 
+.dept-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.dept-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fff;
+  border: 2px solid #e7e1cf;
+  border-radius: 10px;
+  padding: 12px 6px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--navy-800);
+  font-family: "Courier New", monospace;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.dept-item.selected { border-color: var(--gold-500); background: #fdf6e3; }
+.dept-item input {
+  accent-color: var(--gold-500);
+  width: 16px;
+  height: 16px;
+}
+
 .tile-row {
   display: flex;
   flex-wrap: wrap;

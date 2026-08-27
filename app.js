@@ -40,7 +40,14 @@
       completedAt: null,
       progressData: {
         stage2: { solved: [false, false], inputs: ["", ""] },
-        stage3: { placedOrder: [], shuffled: null },
+        stage3: {
+          deptSolved: false,
+          deptSelected: [],
+          deptAttempts: 0,
+          deptShuffled: null,
+          placedOrder: [],
+          shuffled: null,
+        },
         stage4: { m1: "", m2: "", p1: "" },
         stage5: { inputs: ["", "", ""], shuffled: null },
       },
@@ -523,11 +530,85 @@
   }
 
   // ---------------------------------------------------------------------
+  // Stage 3a — real-department gate (shown before the phrase tiles)
+  // ---------------------------------------------------------------------
+  function renderStage3DeptChallenge(wrap, s, pd) {
+    var dc = s.deptChallenge;
+
+    if (!pd.deptShuffled) {
+      pd.deptShuffled = shuffle(dc.departments.map(function (_, i) { return i; }));
+      save();
+    }
+
+    var itemsHtml = pd.deptShuffled
+      .map(function (idx) {
+        var dept = dc.departments[idx];
+        var checked = pd.deptSelected.indexOf(idx) !== -1;
+        return (
+          '<label class="dept-item' + (checked ? " selected" : "") + '">' +
+          '<input type="checkbox" data-dept="' + idx + '" ' + (checked ? "checked" : "") + " />" +
+          '<span class="dept-code">' + esc(dept.code) + "</span>" +
+          "</label>"
+        );
+      })
+      .join("");
+
+    wrap.innerHTML =
+      '<div class="card">' +
+      "<h2>" + esc(s.title) + "</h2>" +
+      "<p>" + esc(dc.question) + "</p>" +
+      "<p>" + esc(dc.instructions) + "</p>" +
+      '<div class="dept-grid">' + itemsHtml + "</div>" +
+      '<div class="error-text" id="deptError"></div>' +
+      '<button class="btn btn--primary" id="deptSubmit" style="margin-top:10px">' + esc(dc.submitButton) + "</button>" +
+      "</div>";
+
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-dept]"), function (el) {
+      el.addEventListener("change", function () {
+        var idx = parseInt(el.getAttribute("data-dept"), 10);
+        var pos = pd.deptSelected.indexOf(idx);
+        if (el.checked && pos === -1) pd.deptSelected.push(idx);
+        if (!el.checked && pos !== -1) pd.deptSelected.splice(pos, 1);
+        save();
+        el.closest(".dept-item").classList.toggle("selected", el.checked);
+      });
+    });
+
+    document.getElementById("deptSubmit").addEventListener("click", function () {
+      var correct = dc.departments
+        .map(function (d, i) { return d.correct ? i : -1; })
+        .filter(function (i) { return i !== -1; })
+        .sort();
+      var selected = pd.deptSelected.slice().sort();
+      var isCorrect = selected.length === correct.length && selected.every(function (v, i) { return v === correct[i]; });
+
+      if (isCorrect) {
+        pd.deptSolved = true;
+        save();
+        renderStage3(wrap);
+      } else {
+        pd.deptAttempts += 1;
+        save();
+        var msg = dc.failureMessage;
+        if (pd.deptAttempts >= dc.hintAfterAttempts) msg += " " + dc.hintMessage;
+        document.getElementById("deptError").textContent = msg;
+        shakeEl(wrap.querySelector(".card"));
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------
   // Stage 3 — mission statement tiles
   // ---------------------------------------------------------------------
   function renderStage3(wrap) {
     var s = C.stage3;
     var pd = state.progressData.stage3;
+
+    if (!pd.deptSolved) {
+      renderStage3DeptChallenge(wrap, s, pd);
+      return;
+    }
+
     if (!pd.shuffled) {
       var order = s.tiles.map(function (_, i) { return i; });
       var shuf = shuffle(order);

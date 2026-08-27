@@ -133,6 +133,39 @@ window.CPF_CONTENT = {
     title: "Stage 3 · Rebuild the Mission Statement",
     intro:
       "A fragment of Slide 1's mission statement was salvaged, but the phrases are out of order. Tap them in the correct sequence to rebuild it.",
+    // -----------------------------------------------------------------
+    // Gate puzzle shown BEFORE the phrase tiles: pick the real CPF
+    // departments out of a list of 15. Exactly 5 are real; the other 10
+    // are decoys. Player must select the exact set of 5 correct codes.
+    // For this test build, real ones start with "A" — swap in genuine
+    // department names/codes later without touching any other file.
+    // -----------------------------------------------------------------
+    deptChallenge: {
+      question: "Before you can rebuild the sentence, prove you know the org. Which of these are real CPF departments?",
+      instructions: "Select the ones you believe are genuine, then submit.",
+      submitButton: "Submit Selection",
+      failureMessage: "That's not right — recheck your selections and try again.",
+      // Shown appended to the failure message once attempts reach hintAfterAttempts.
+      hintMessage: "Hint: exactly 5 of these are genuine CPF departments.",
+      hintAfterAttempts: 3,
+      departments: [
+        { code: "AMS", correct: true },
+        { code: "ARD", correct: true },
+        { code: "ACS", correct: true },
+        { code: "APD", correct: true },
+        { code: "AGR", correct: true },
+        { code: "BXT", correct: false },
+        { code: "CVR", correct: false },
+        { code: "DKN", correct: false },
+        { code: "ELQ", correct: false },
+        { code: "FYP", correct: false },
+        { code: "GNB", correct: false },
+        { code: "HWS", correct: false },
+        { code: "JQD", correct: false },
+        { code: "KZM", correct: false },
+        { code: "LTV", correct: false },
+      ],
+    },
     // The full statement, split into tap-in-order tiles. Order below = correct order.
     tiles: [
       "To enable Singaporeans",
