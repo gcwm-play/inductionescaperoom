@@ -1,0 +1,9 @@
+{
+  "name": "CPF Board — Operation Board Briefing",
+  "short_name": "Board Briefing",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0B2545",
+  "theme_color": "#0B2545",
+  "icons": []
+}
