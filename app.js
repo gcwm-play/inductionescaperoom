@@ -18,6 +18,15 @@
   var state = loadState();
   var activeEmail = null; // ephemeral, not persisted
 
+  // Safety net: catch errors raised outside render()'s own try/catch too
+  // (e.g. inside a click handler), so a bug never leaves a dead screen.
+  window.addEventListener("error", function (e) {
+    try {
+      var wrap = document.getElementById("stageWrap");
+      if (wrap) renderCrash(wrap, e.error || e.message);
+    } catch (ignored) {}
+  });
+
   init();
 
   // ---------------------------------------------------------------------
@@ -216,18 +225,40 @@
     app.innerHTML = html;
     var wrap = document.getElementById("stageWrap");
 
-    switch (view) {
-      case 0: renderWelcome(wrap); break;
-      case 1: renderStage1(wrap); break;
-      case 2: renderStage1Success(wrap); break;
-      case 3: renderGate(wrap); break;
-      case 4: renderStage2(wrap); break;
-      case 5: renderStage3(wrap); break;
-      case 6: renderStage4(wrap); break;
-      case 7: renderStage5(wrap); break;
-      case 8: renderFinale(wrap); break;
-      default: renderWelcome(wrap);
+    try {
+      switch (view) {
+        case 0: renderWelcome(wrap); break;
+        case 1: renderStage1(wrap); break;
+        case 2: renderStage1Success(wrap); break;
+        case 3: renderGate(wrap); break;
+        case 4: renderStage2(wrap); break;
+        case 5: renderStage3(wrap); break;
+        case 6: renderStage4(wrap); break;
+        case 7: renderStage5(wrap); break;
+        case 8: renderFinale(wrap); break;
+        default: renderWelcome(wrap);
+      }
+    } catch (err) {
+      renderCrash(wrap, err);
     }
+  }
+
+  // Last-resort fallback so a bug or a stale/corrupted save never leaves a
+  // blank screen — always gives the player a way to recover.
+  function renderCrash(wrap, err) {
+    if (window.console && console.error) console.error("CPF escape room render error:", err);
+    wrap.innerHTML =
+      '<div class="card">' +
+      "<h2>This stage didn't load</h2>" +
+      "<p>Something went wrong showing this puzzle. Try again, or reset your progress on this device and re-enter your codes.</p>" +
+      '<div class="error-text">' + esc(err && err.message ? err.message : String(err)) + "</div>" +
+      '<button class="btn btn--primary" id="crashRetry" style="margin-top:10px">Try Again</button>' +
+      '<button class="btn btn--dark" id="crashReset" style="margin-top:10px">Reset My Progress</button>' +
+      "</div>";
+    document.getElementById("crashRetry").addEventListener("click", render);
+    document.getElementById("crashReset").addEventListener("click", function () {
+      confirmDialog("Reset your progress on this device? You'll need to re-enter any codes you've found.", resetAll);
+    });
   }
 
   function renderTopbar(view) {
