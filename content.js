@@ -41,36 +41,29 @@ window.CPF_CONTENT = {
   stage1: {
     title: "Stage 1 · The Founding Date",
     intro:
-      "Slide 1 needs the date CPF Board was established. Four timeline fragments were recovered from the server logs — only one is genuine. Find it, then convert the date to a 4-digit code in DDMM format for the vault.",
-    fragments: [
-      {
-        year: "1955",
-        text: "The Central Provident Fund Board is established on 1 July, to help working Singaporeans save for retirement.",
-        correct: true,
-      },
-      {
-        year: "1968",
-        text: "CPF savings are first allowed to be used for public housing under the Home Ownership Scheme.",
-        correct: false,
-      },
-      {
-        year: "1977",
-        text: "The CPF Special Account is introduced to further strengthen members' retirement savings.",
-        correct: false,
-      },
-      {
-        year: "1984",
-        text: "Medisave is introduced, allowing members to set aside savings for healthcare needs.",
-        correct: false,
-      },
+      "Every shape below hides a number — count its sides. Study the two examples, then use the same rule to decode the picture puzzle and solve the sum. Write your answer as a 4-digit code for the vault.",
+    // Worked examples teaching the cipher rule (shape -> number of sides).
+    // Shape keys must match SHAPES in app.js: circle, triangle, square, pentagon.
+    legend: [
+      { shape: "circle", label: "1" },
+      { shape: "triangle", label: "3" },
     ],
-    inputLabel: "Enter the code (DDMM)",
+    // The puzzle itself: two groups of shapes to decode and add.
+    // Each group's shapes read left-to-right as digits of a number, e.g.
+    // [pentagon, square] -> 5 and 4 -> 54. Player must add the two numbers
+    // and enter the total as a 4-digit code (54 + 53 = 107 -> "0107").
+    puzzleGroups: [
+      ["pentagon", "square"],
+      ["pentagon", "triangle"],
+    ],
+    inputLabel: "Enter the answer as a 4-digit code",
     inputPlaceholder: "0000",
     // The 4-digit code the player must type in-app AND dial on the physical lock.
+    // Must equal the sum of the decoded puzzleGroups above, zero-padded to 4 digits.
     lockCode: "0107",
-    successHeading: "Fragment recovered.",
+    successHeading: "Code cracked.",
     successBody:
-      "CPF Board was founded on 1 July 1955. Take this code to the physical lock in the room:",
+      "54 + 53 = 107 — that's the day CPF Board was founded: 1 July 1955. Take this code to the physical lock in the room:",
     lockInstruction:
       "Dial 0 – 1 – 0 – 7 on the combination lock. Inside, you'll find a password.",
     continueButton: "I've opened the lock",

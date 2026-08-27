@@ -127,6 +127,48 @@
     return (str || "").trim().toUpperCase();
   }
 
+  // Shape cipher (Stage 1): each shape's value is its number of sides.
+  // A circle has no straight sides, so it's a fixed special case (value 1).
+  var SHAPES = {
+    circle: { sides: 0, value: 1 },
+    triangle: { sides: 3, value: 3 },
+    square: { sides: 4, value: 4 },
+    pentagon: { sides: 5, value: 5 },
+    hexagon: { sides: 6, value: 6 },
+  };
+
+  function polygonPoints(sides, cx, cy, r) {
+    var pts = [];
+    var start = -Math.PI / 2;
+    for (var i = 0; i < sides; i++) {
+      var angle = start + (i * 2 * Math.PI) / sides;
+      pts.push((cx + r * Math.cos(angle)).toFixed(2) + "," + (cy + r * Math.sin(angle)).toFixed(2));
+    }
+    return pts.join(" ");
+  }
+
+  function shapeSVG(shapeKey, size) {
+    size = size || 40;
+    var shape = SHAPES[shapeKey];
+    if (!shape) return "";
+    var cx = size / 2, cy = size / 2, r = size / 2 - 3;
+    var inner;
+    if (shape.sides === 0) {
+      inner = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" />';
+    } else if (shape.sides === 4) {
+      // Axis-aligned square rather than the diamond a rotated 4-gon would draw.
+      var side = r * Math.SQRT2;
+      inner = '<rect x="' + (cx - side / 2) + '" y="' + (cy - side / 2) + '" width="' + side + '" height="' + side + '" />';
+    } else {
+      inner = '<polygon points="' + polygonPoints(shape.sides, cx, cy, r) + '" />';
+    }
+    return (
+      '<svg class="shape-icon" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + " " + size + '" aria-label="' + esc(shapeKey) + '">' +
+      inner +
+      "</svg>"
+    );
+  }
+
   function formatTime(ms) {
     var totalSec = Math.floor(ms / 1000);
     var m = Math.floor(totalSec / 60);
@@ -249,11 +291,23 @@
   // ---------------------------------------------------------------------
   function renderStage1(wrap) {
     var s = C.stage1;
-    var fragments = s.fragments
-      .map(function (f) {
+
+    var legendHtml = s.legend
+      .map(function (item) {
         return (
-          '<div class="fragment"><span class="fragment__year">' + esc(f.year) + "</span><p>" + esc(f.text) + "</p></div>"
+          '<div class="shape-legend__item">' +
+          shapeSVG(item.shape) +
+          '<span class="shape-legend__eq">= ' + esc(item.label) + "</span>" +
+          "</div>"
         );
+      })
+      .join("");
+
+    var groupsHtml = s.puzzleGroups
+      .map(function (group, gi) {
+        var icons = group.map(function (shapeKey) { return shapeSVG(shapeKey); }).join("");
+        var op = gi < s.puzzleGroups.length - 1 ? '<div class="shape-op">+</div>' : '<div class="shape-op">=</div>';
+        return '<div class="shape-group">' + icons + "</div>" + op;
       })
       .join("");
 
@@ -261,7 +315,8 @@
       '<div class="card">' +
       "<h2>" + esc(s.title) + "</h2>" +
       "<p>" + esc(s.intro) + "</p>" +
-      fragments +
+      '<div class="shape-legend">' + legendHtml + "</div>" +
+      '<div class="shape-puzzle">' + groupsHtml + '<div class="shape-op shape-op--query">?</div></div>' +
       '<label class="field-label" for="s1input">' + esc(s.inputLabel) + "</label>" +
       '<input type="tel" inputmode="numeric" maxlength="4" id="s1input" placeholder="' + esc(s.inputPlaceholder) + '" autocomplete="off" />' +
       '<div class="error-text" id="s1error"></div>' +
@@ -277,7 +332,7 @@
       if (val === s.lockCode) {
         unlock(2);
       } else {
-        errorEl.textContent = "That's not quite right. Re-check the timeline fragments.";
+        errorEl.textContent = "Not quite. Recount the sides of each shape and add the two numbers again.";
         shakeEl(card);
       }
     });
