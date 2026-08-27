@@ -370,7 +370,7 @@
       if (val === s.lockCode) {
         unlock(2);
       } else {
-        errorEl.textContent = "Not quite. Recount the sides of each shape and add the two numbers again.";
+        errorEl.textContent = s.errorMessage;
         shakeEl(card);
       }
     });
@@ -522,7 +522,7 @@
           activeEmail = null;
           renderStage2(wrap);
         } else {
-          errorEl.textContent = "Not quite — look at the first letter of each paragraph.";
+          errorEl.textContent = s.errorMessage;
           shakeEl(wrap.querySelector(".card"));
         }
       });

@@ -28,7 +28,7 @@ window.CPF_CONTENT = {
     heading: "Incident Briefing",
     body: [
       "President Tharman is visiting CPF Board this week to be briefed on who we are.",
-      "Last night, a network outage wiped out the two summary slides prepared for his visit — the ones covering our history, our mission, and our vision.",
+      "Last night, a network outage wiped out the two summary slides prepared for his visit.",
       "IT could not recover the files in time. It's down to your team to rebuild both slides before he arrives.",
       "You'll need to solve a series of puzzles to recover the facts, piece the statements back together, and reconstruct the deck.",
     ],
@@ -67,6 +67,7 @@ window.CPF_CONTENT = {
     lockInstruction:
       "Dial 0 – 1 – 0 – 7 on the combination lock. Inside, you'll find a password.",
     continueButton: "I've opened the lock",
+    errorMessage: "That's not the right code. Try again.",
   },
 
   // ---------------------------------------------------------------------
@@ -89,6 +90,7 @@ window.CPF_CONTENT = {
   stage2: {
     title: "Stage 2 - Recover the hidden word",
     intro: "Read each email below carefully. Something's hidden in each one.",
+    errorMessage: "That's not the right word. Try again.",
     emails: [
       {
         from: "IT Support <it-support@cpf.internal>",
