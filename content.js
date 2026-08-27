@@ -39,9 +39,9 @@ window.CPF_CONTENT = {
   // STAGE 1 — Find the Board's birthday → physical 4-digit lock code
   // ---------------------------------------------------------------------
   stage1: {
-    title: "Stage 1 · The Founding Date",
+    title: "Stage 1 - Find the passcode, unlock the lock!",
     intro:
-      "Every shape below hides a number — count its sides. Study the two examples, then use the same rule to decode the picture puzzle and solve the sum. Write your answer as a 4-digit code for the vault.",
+      "Solve the puzzle below to get a 4 digit code to open the physical lock given to your team:",
     // Worked examples teaching the cipher rule (shape -> number of sides).
     // Shape keys must match SHAPES in app.js: circle, triangle, square, pentagon.
     legend: [
