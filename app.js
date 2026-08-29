@@ -901,8 +901,8 @@
       "<h2>" + esc(s.title) + "</h2>" +
       "<p>" + esc(s.intro) + "</p>" +
       "<p>" + esc(s.hint) + "</p>" +
-      '<p style="font-size:0.82rem">' + esc(s.colorHint) + "</p>" +
       fields +
+      '<div class="hint-box">' + esc(s.colorHint) + "</div>" +
       (allCorrect
         ? '<button class="btn btn--primary" id="s5continue" style="margin-top:10px">' + esc(s.continueButton) + "</button>"
         : "") +

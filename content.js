@@ -259,7 +259,7 @@ window.CPF_CONTENT = {
     intro:
       "Find the key words in our Vision. Approach the facilitator for the 3 crossword puzzle for your team to solve to unlock the 3 key words in CPF Board's Vision.",
     hint: "Solve the crossword puzzle completely, and unscramble the highlighted boxes.",
-    colorHint: "Get a word right and it'll turn green.",
+    colorHint: "Hint: Get a word right and it'll turn green.",
     wordLabels: ["Word 1", "Word 2", "Word 3"],
     answers: ["TRUSTED", "RESPECTED", "COMMITTED"],
     continueButton: "Reconstruct the Slides",
