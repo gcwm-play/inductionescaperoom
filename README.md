@@ -37,14 +37,16 @@ Or just `python3 -m http.server` from this folder for local testing.
 | Stage | What happens | Answer lives in |
 |---|---|---|
 | Briefing | Backstory: slides lost, President Tharman visiting, network outage | `content.js → welcome` |
-| 1 · Founding date | Spot the real timeline fragment among 4, derive the 4-digit DDMM code | `content.js → stage1.lockCode` (default `0107`) |
+| 1 · Founding date | Shape cipher (shape = number of sides) decodes to a 4-digit DDMM code | `content.js → stage1.lockCode` (default `0107`) |
 | Physical prop | Team dials the code on a **real 4-digit combination lock** in the room; inside is a note with a password | you set up |
 | Gate | Team types the password from the lock to "reconnect to the network" | `content.js → gate.password` (default `SECUREFUTURE`) |
 | 2 · Emails | Read 2 mock emails; first letter of each paragraph spells MISSION / VISION | `content.js → stage2.emails` |
+| 3A · Real departments | While the app puzzles are worked, one teammate starts drawing the CPF Board logo from a text description; meanwhile pick the 5 real CPF departments out of 15 (10 decoys) to unlock the tiles | `content.js → stage3.logoTask`, `stage3.deptChallenge` |
 | 3 · Mission | Tap shuffled phrase-tiles into the correct order to rebuild the mission statement | `content.js → stage3.tiles` |
+| 3B · Logo photo | Team photographs their finished logo drawing using the phone's camera | `content.js → stage3b` |
 | 4 · Numbers | Solve 3 simple equations to reveal 4.2 million members / 30 national projects | `content.js → stage4.blanks` |
 | 5 · Vision words | Unscramble 3 anagrams (clue-driven) to reveal TRUSTED / RESPECTED / COMMITTED | `content.js → stage5.words` |
-| Finale | Both slides render fully assembled from everything the team found | `content.js → finale` |
+| Finale | Both slides render fully assembled from everything the team found, plus their logo photo | `content.js → finale` |
 
 ## Facilitator setup checklist
 
@@ -52,16 +54,26 @@ Or just `python3 -m http.server` from this folder for local testing.
    `stage1.lockCode` to — keep it 4 digits and matching the app).
 2. **Write the gate password** (`SECUREFUTURE` by default) on a slip of
    paper and place it inside the lock box.
-3. Test the full flow yourself once on a phone before the first team runs
-   it.
-4. **Between teams**, reset a device in one of two ways:
+3. **Provide paper and pens/markers** for the Stage 3A logo-drawing task —
+   this is a physical activity, not something done in the app.
+4. Test the full flow yourself once on a phone before the first team runs
+   it, including granting camera access at Stage 3B. Camera capture is
+   most reliable over **HTTPS** — GitHub Pages and the Artifact link both
+   serve over HTTPS by default, so this is only a concern if you host it
+   somewhere else over plain `http://`.
+5. **Between teams**, reset a device in one of two ways:
    - On the finale screen, tap **"Reset for Next Team"**.
    - Or open the link with `?reset=1` appended, e.g.
      `https://your-url/index.html?reset=1` (also available as a small
      "Facilitator: reset progress" link at the bottom of the welcome
-     screen).
-5. Progress is stored **per device/browser**, not centrally — if a team
-   switches phones mid-game they'll need to restart on the new device.
+     screen). This also clears the saved logo photo.
+6. Progress (and the logo photo) is stored **per device/browser**, not
+   centrally — if a team switches phones mid-game they'll need to restart
+   on the new device, and the photo is not centrally collectible. If you
+   want to gather every team's logo drawing afterward, that needs a real
+   upload target (e.g. a form endpoint or cloud storage bucket) — ask if
+   you'd like that wired in; it's a separate piece of infrastructure
+   beyond what a static site can do on its own.
 
 ## Content accuracy note
 
