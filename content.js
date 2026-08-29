@@ -28,7 +28,7 @@ window.CPF_CONTENT = {
     heading: "Incident Briefing",
     body: [
       "President Tharman is visiting CPF Board this week to be briefed on who we are.",
-      "Last night, a network outage wiped out the two summary slides prepared for his visit.",
+      "A network outage has just wiped out the two summary slides prepared for his visit.",
       "IT could not recover the files in time. It's down to your team to rebuild both slides before he arrives.",
       "You'll need to solve a series of puzzles to recover the facts, piece the statements back together, and reconstruct the deck.",
     ],
