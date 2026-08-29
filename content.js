@@ -283,7 +283,7 @@ window.CPF_CONTENT = {
         "To be a {word1}, {word2} and {word3} partner, enabling every Singaporean to achieve a secure retirement.",
       statsLabel: "By the Numbers",
     },
-    logoLabel: "Your Team's Logo",
+    logoLabel: "CPF Board's Logo",
     completionHeading: "Mission Complete",
     completionBody:
       "Both slides are rebuilt and ready. Show this screen to your facilitator to confirm your team is done.",

@@ -944,6 +944,12 @@
 
     wrap.innerHTML =
       '<div class="timer-chip">⏱ ' + esc(elapsed) + "</div>" +
+      (capturedPhoto
+        ? '<div class="slide">' +
+          '<div class="slide__title">' + esc(f.logoLabel) + "</div>" +
+          '<img class="photo-preview" src="' + capturedPhoto + '" alt="Team logo drawing" />' +
+          "</div>"
+        : "") +
       '<div class="slide">' +
       '<div class="slide__title">' + esc(f.slide1.title) + "</div>" +
       '<div class="slide__label">' + esc(f.slide1.founded) + "</div>" +
@@ -960,12 +966,6 @@
       '<div><div class="slide__stat-num">' + esc(pd4.b) + '</div><div class="slide__stat-label">National projects</div></div>' +
       "</div>" +
       "</div>" +
-      (capturedPhoto
-        ? '<div class="slide">' +
-          '<div class="slide__title">' + esc(f.logoLabel) + "</div>" +
-          '<img class="photo-preview" src="' + capturedPhoto + '" alt="Team logo drawing" />' +
-          "</div>"
-        : "") +
       '<div class="card card--navy">' +
       "<h2>" + esc(f.completionHeading) + "</h2>" +
       "<p>" + esc(f.completionBody) + "</p>" +
