@@ -555,6 +555,7 @@
 
     wrap.innerHTML =
       '<div class="card">' +
+      (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
       "<h2>" + esc(s.title) + "</h2>" +
       "<p>" + esc(dc.question) + "</p>" +
       "<p>" + esc(dc.instructions) + "</p>" +

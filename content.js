@@ -142,8 +142,9 @@ window.CPF_CONTENT = {
     // department names/codes later without touching any other file.
     // -----------------------------------------------------------------
     deptChallenge: {
-      question: "Before you can rebuild the sentence, prove you know the org. Which of these are real CPF departments?",
-      instructions: "Select the ones you believe are genuine, then submit.",
+      eyebrow: "Stage 3A",
+      question: "You'll have to piece together the Board's Mission.",
+      instructions: "Fragments of the Board's Mission are hidden in the folders below, but you'll have to select only the folders that are actual departments in CPF Board.",
       submitButton: "Submit Selection",
       failureMessage: "That's not right — recheck your selections and try again.",
       // Shown appended to the failure message once attempts reach hintAfterAttempts.
