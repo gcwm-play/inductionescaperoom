@@ -324,6 +324,7 @@
     var w = C.welcome;
     var paras = w.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
     wrap.innerHTML =
+      '<div class="notice-box">' + esc(w.facilitatorNotice) + "</div>" +
       '<div class="card card--navy">' +
       '<span class="eyebrow">' + esc(w.heading) + "</span>" +
       "<h1>" + esc(C.meta.appTitle) + "</h1>" +

@@ -426,6 +426,18 @@ input:focus { outline: none; border-color: var(--gold-500); }
 }
 .number-summary strong { color: var(--gold-400); }
 
+.notice-box {
+  background: rgba(212, 175, 55, 0.16);
+  border: 2px solid var(--gold-500);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--gold-400);
+}
+
 .hint-box {
   background: rgba(212, 175, 55, 0.12);
   border: 1px solid var(--gold-500);

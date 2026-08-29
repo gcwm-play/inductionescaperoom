@@ -25,11 +25,13 @@ window.CPF_CONTENT = {
   // WELCOME / BRIEFING
   // ---------------------------------------------------------------------
   welcome: {
+    facilitatorNotice: "Wait for the facilitator to start the session before clicking the button below.",
     heading: "Incident Briefing",
     body: [
-      "President Tharman is visiting CPF Board this week to be briefed on who we are.",
-      "A network outage has just wiped out the two summary slides prepared for his visit.",
-      "IT could not recover the files in time. It's down to your team to rebuild both slides before he arrives.",
+      "President Tharman is visiting CPF Board in 30 minutes to be briefed on the Board's business.",
+      "Unfortunately, a network outage has just wiped out the summary slides prepared for his visit.",
+      "(Please do not Google or use AI to complete this activity; your team will automatically come in last if you do)",
+      "IT is unable to recover the files in time. It's down to your team to rebuild the slides before he arrives.",
       "You'll need to solve a series of puzzles to recover the facts, piece the statements back together, and reconstruct the deck.",
     ],
     startButton: "Begin the Rebuild",
