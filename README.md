@@ -45,7 +45,7 @@ Or just `python3 -m http.server` from this folder for local testing.
 | 3 · Mission | Tap shuffled phrase-tiles into the correct order to rebuild the mission statement | `content.js → stage3.tiles` |
 | 3B · Logo photo | Team photographs their finished logo drawing using the phone's camera | `content.js → stage3b` |
 | 4A/4B · Numbers | Two physical/facilitator-led challenges, solved in parallel: 4A gets the member count from a facilitator-provided tool, 4B counts green dots behind each team's Character Board for the project count. Both required to progress | `content.js → stage4.challengeA` (`4.3`), `stage4.challengeB` (`30`) |
-| 5 · Vision words | Unscramble 3 anagrams (clue-driven) to reveal TRUSTED / RESPECTED / COMMITTED | `content.js → stage5.words` |
+| 5 · Vision words | Solve a facilitator-provided physical crossword to reveal 3 key Vision words (TRUSTED / RESPECTED / COMMITTED); type them into the app, which live-colours each field red/green as you type | `content.js → stage5.answers` |
 | Finale | Both slides render fully assembled from everything the team found, plus their logo photo | `content.js → finale` |
 
 ## Facilitator setup checklist
@@ -65,18 +65,23 @@ Or just `python3 -m http.server` from this folder for local testing.
    Both answers are plain text fields in the app — no format is enforced
    beyond matching `4.3` / `30`, so any physical mechanic works as long as
    it lands on those numbers.
-5. Test the full flow yourself once on a phone before the first team runs
+5. **Prepare Stage 5's physical crossword** — a facilitator-handed puzzle
+   whose highlighted/unscrambled boxes reveal TRUSTED, RESPECTED, and
+   COMMITTED (or whatever you set `stage5.answers` to). The app doesn't
+   care which of its 3 fields a word goes into, so the crossword doesn't
+   need to enforce a specific field order either.
+6. Test the full flow yourself once on a phone before the first team runs
    it, including granting camera access at Stage 3B. Camera capture is
    most reliable over **HTTPS** — GitHub Pages and the Artifact link both
    serve over HTTPS by default, so this is only a concern if you host it
    somewhere else over plain `http://`.
-6. **Between teams**, reset a device in one of two ways:
+7. **Between teams**, reset a device in one of two ways:
    - On the finale screen, tap **"Reset for Next Team"**.
    - Or open the link with `?reset=1` appended, e.g.
      `https://your-url/index.html?reset=1` (also available as a small
      "Facilitator: reset progress" link at the bottom of the welcome
      screen). This also clears the saved logo photo.
-7. Progress (and the logo photo) is stored **per device/browser**, not
+8. Progress (and the logo photo) is stored **per device/browser**, not
    centrally — if a team switches phones mid-game they'll need to restart
    on the new device, and the photo is not centrally collectible. If you
    want to gather every team's logo drawing afterward, that needs a real
