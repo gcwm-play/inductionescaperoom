@@ -53,7 +53,7 @@
           shuffled: null,
         },
         stage3b: { done: false },
-        stage4: { m1: "", m2: "", p1: "" },
+        stage4: { a: "", b: "" },
         stage5: { inputs: ["", "", ""], shuffled: null },
       },
     };
@@ -808,50 +808,71 @@
     var s = C.stage4;
     var pd = state.progressData.stage4;
 
-    var rows = s.blanks
-      .map(function (b) {
-        var val = pd[b.id] || "";
-        var status = "";
-        if (val !== "") status = val === b.answer ? "✓" : "✗";
-        return (
-          '<div class="equation-row">' +
-          '<div class="equation-row__eq">' + esc(b.equation) + "</div>" +
-          '<input type="tel" inputmode="numeric" maxlength="3" data-field="' + b.id + '" value="' + esc(val) + '" />' +
-          '<div class="equation-row__status">' + status + "</div>" +
-          "</div>"
-        );
-      })
-      .join("");
+    var aCorrect = pd.a !== "" && !isNaN(parseFloat(pd.a)) && parseFloat(pd.a) === parseFloat(s.challengeA.answer);
+    var bCorrect = pd.b !== "" && !isNaN(parseInt(pd.b, 10)) && parseInt(pd.b, 10) === parseInt(s.challengeB.answer, 10);
 
-    var allCorrect = s.blanks.every(function (b) { return pd[b.id] === b.answer; });
     var summary = s.summaryTemplate
-      .replace("{m1}", pd.m1 || "_")
-      .replace("{m2}", pd.m2 || "_")
-      .replace("{p1}", pd.p1 || "__");
+      .replace("{members}", aCorrect ? pd.a : "_._")
+      .replace("{projects}", bCorrect ? pd.b : "__");
+
+    function challengeCard(idPrefix, challenge, correct, currentVal) {
+      return (
+        '<div class="card" id="' + idPrefix + 'Card">' +
+        '<span class="eyebrow">' + esc(challenge.label) + "</span>" +
+        "<p>" + esc(challenge.prompt) + "</p>" +
+        '<label class="field-label" for="' + idPrefix + 'Input">' + esc(challenge.inputLabel) + "</label>" +
+        '<input type="text" inputmode="decimal" id="' + idPrefix + 'Input" placeholder="' + esc(challenge.inputPlaceholder) + '" value="' + esc(currentVal) + '" ' + (correct ? "disabled" : "") + " />" +
+        '<div class="error-text" id="' + idPrefix + 'Error"></div>' +
+        (correct
+          ? '<div class="success-banner">Correct.</div>'
+          : '<button class="btn btn--primary" id="' + idPrefix + 'Submit" style="margin-top:10px">' + esc(challenge.submitButton) + "</button>") +
+        "</div>"
+      );
+    }
 
     wrap.innerHTML =
       '<div class="card">' +
       "<h2>" + esc(s.title) + "</h2>" +
       "<p>" + esc(s.intro) + "</p>" +
-      rows +
       "</div>" +
+      challengeCard("s4a", s.challengeA, aCorrect, pd.a) +
+      challengeCard("s4b", s.challengeB, bCorrect, pd.b) +
       '<div class="card card--navy">' +
       '<div class="number-summary">' + esc(summary) + "</div>" +
-      (allCorrect
+      (aCorrect && bCorrect
         ? '<button class="btn btn--primary" id="s4continue" style="margin-top:14px">' + esc(s.continueButton) + "</button>"
         : "") +
       "</div>";
 
-    Array.prototype.forEach.call(wrap.querySelectorAll("[data-field]"), function (el) {
-      el.addEventListener("input", function () {
-        var field = el.getAttribute("data-field");
-        pd[field] = el.value.replace(/\D/g, "");
+    if (!aCorrect) {
+      document.getElementById("s4aSubmit").addEventListener("click", function () {
+        var val = document.getElementById("s4aInput").value.trim();
+        pd.a = val;
         save();
-        renderStage4(wrap);
+        if (val !== "" && !isNaN(parseFloat(val)) && parseFloat(val) === parseFloat(s.challengeA.answer)) {
+          renderStage4(wrap);
+        } else {
+          document.getElementById("s4aError").textContent = s.challengeA.errorMessage;
+          shakeEl(document.getElementById("s4aCard"));
+        }
       });
-    });
+    }
 
-    if (allCorrect) {
+    if (!bCorrect) {
+      document.getElementById("s4bSubmit").addEventListener("click", function () {
+        var val = document.getElementById("s4bInput").value.trim();
+        pd.b = val;
+        save();
+        if (val !== "" && !isNaN(parseInt(val, 10)) && parseInt(val, 10) === parseInt(s.challengeB.answer, 10)) {
+          renderStage4(wrap);
+        } else {
+          document.getElementById("s4bError").textContent = s.challengeB.errorMessage;
+          shakeEl(document.getElementById("s4bCard"));
+        }
+      });
+    }
+
+    if (aCorrect && bCorrect) {
       document.getElementById("s4continue").addEventListener("click", function () { unlock(8); });
     }
   }
@@ -938,8 +959,8 @@
       '<div class="slide__text slide__vision">' + vision + "</div>" +
       '<div class="slide__label">' + esc(f.slide2.statsLabel) + "</div>" +
       '<div class="slide__stats">' +
-      '<div><div class="slide__stat-num">' + esc(pd4.m1) + "." + esc(pd4.m2) + "M</div><div class=\"slide__stat-label\">Members served</div></div>" +
-      '<div><div class="slide__stat-num">' + esc(pd4.p1) + '</div><div class="slide__stat-label">National projects</div></div>' +
+      '<div><div class="slide__stat-num">' + esc(pd4.a) + "M</div><div class=\"slide__stat-label\">Members served</div></div>" +
+      '<div><div class="slide__stat-num">' + esc(pd4.b) + '</div><div class="slide__stat-label">National projects</div></div>' +
       "</div>" +
       "</div>" +
       (capturedPhoto

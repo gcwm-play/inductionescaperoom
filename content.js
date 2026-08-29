@@ -214,34 +214,37 @@ window.CPF_CONTENT = {
   },
 
   // ---------------------------------------------------------------------
-  // STAGE 4 — Number puzzle: 4.2 million members, 30 national projects
+  // STAGE 4 — Two split, physical/facilitator-led challenges: number of
+  // members served (4A) and number of national projects (4B). Both are
+  // solved outside the app; the app just collects and validates the two
+  // answers. Shown together, solvable in either order/in parallel by
+  // different teammates — Stage 5 unlocks only once BOTH are correct.
   // ---------------------------------------------------------------------
   stage4: {
     title: "Stage 4 · The Numbers",
     intro:
-      "Slide 2 needs two figures. Solve each equation to reveal the missing digits.",
-    blanks: [
-      {
-        id: "m1",
-        equation: "9 − 5 = ?",
-        answer: "4",
-        resultLabel: "million members (whole number)",
-      },
-      {
-        id: "m2",
-        equation: "1 + 1 = ?",
-        answer: "2",
-        resultLabel: "million members (decimal)",
-      },
-      {
-        id: "p1",
-        equation: "6 × 5 = ?",
-        answer: "30",
-        resultLabel: "national projects",
-      },
-    ],
-    summaryTemplate: "CPF Board serves {m1}.{m2} million members through {p1} national projects.",
+      "Slide 2 has missing figures. Split the challenges below between your team members. Solve each challenge and key in your answers to progress.",
+    summaryTemplate: "CPF Board serves {members} million members through over {projects} national projects.",
     continueButton: "Continue",
+    challengeA: {
+      label: "Stage 4A",
+      prompt: "Find out how many members we serve! Approach the facilitator for the tool you'll need.",
+      inputLabel: "Your answer",
+      inputPlaceholder: "0.0",
+      answer: "4.3",
+      submitButton: "Submit",
+      errorMessage: "That's not right. Try again.",
+    },
+    challengeB: {
+      label: "Stage 4B",
+      prompt:
+        "Look behind each team's Character Board. Count and add up the total number of GREEN dots you find behind all the Character Boards to get the answer.",
+      inputLabel: "Your answer",
+      inputPlaceholder: "0",
+      answer: "30",
+      submitButton: "Submit",
+      errorMessage: "That's not right. Try again.",
+    },
   },
 
   // ---------------------------------------------------------------------
