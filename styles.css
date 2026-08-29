@@ -493,16 +493,22 @@ input.word-input--correct { color: var(--green); font-weight: 800; border-color:
   font-family: inherit;
 }
 
-.timer-chip {
-  display: inline-block;
-  background: rgba(212,175,55,0.15);
+.completion-stamp {
+  background: rgba(212, 175, 55, 0.15);
   border: 1px solid var(--gold-500);
-  color: var(--gold-500);
-  border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 0.78rem;
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-align: center;
+}
+.completion-stamp__line {
+  color: var(--gold-400);
   font-weight: 700;
-  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+.completion-stamp__date {
+  color: rgba(247, 244, 236, 0.6);
+  font-size: 0.78rem;
+  margin-top: 4px;
 }
 
 .shake { animation: shake 0.35s ease; }

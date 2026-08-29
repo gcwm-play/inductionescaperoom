@@ -42,6 +42,7 @@
       currentView: 0,
       startedAt: null,
       completedAt: null,
+      teamName: "",
       progressData: {
         stage2: { solved: [false, false], inputs: ["", ""] },
         stage3: {
@@ -208,6 +209,20 @@
     return m + "m " + (s < 10 ? "0" : "") + s + "s";
   }
 
+  function formatDateStamp(ms) {
+    try {
+      return new Date(ms).toLocaleString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return new Date(ms).toString();
+    }
+  }
+
   function esc(str) {
     var d = document.createElement("div");
     d.textContent = str;
@@ -289,7 +304,7 @@
     if (view === 0) {
       return (
         '<div class="topbar">' +
-        '<div class="topbar__brand"><span class="badge">C</span> ' + esc(C.meta.orgName) + " · " + esc(C.meta.appTitle) + "</div>" +
+        '<div class="topbar__brand"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</div>" +
         "</div>"
       );
     }
@@ -327,13 +342,19 @@
       '<div class="notice-box">' + esc(w.facilitatorNotice) + "</div>" +
       '<div class="card card--navy">' +
       '<span class="eyebrow">' + esc(w.heading) + "</span>" +
-      "<h1>" + esc(C.meta.appTitle) + "</h1>" +
       paras +
-      '<button class="btn btn--primary" id="startBtn" style="margin-top:10px">' + esc(w.startButton) + "</button>" +
+      '<p style="font-style:italic">' + esc(w.aiWarning) + "</p>" +
+      '<label class="field-label" for="teamNameInput">' + esc(w.teamNameLabel) + "</label>" +
+      '<input type="text" id="teamNameInput" maxlength="30" autocapitalize="words" autocomplete="off" placeholder="' + esc(w.teamNamePlaceholder) + '" value="' + esc(state.teamName) + '" />' +
+      '<button class="btn btn--primary" id="startBtn" style="margin-top:14px">' + esc(w.startButton) + "</button>" +
       "</div>" +
       '<div class="footer-link">' + esc(C.meta.tagline) +
       '<br><button id="resetLink">Facilitator: reset progress</button></div>';
 
+    document.getElementById("teamNameInput").addEventListener("input", function (e) {
+      state.teamName = e.target.value;
+      save();
+    });
     document.getElementById("startBtn").addEventListener("click", function () {
       unlock(Math.max(1, state.maxUnlocked));
     });
@@ -942,9 +963,17 @@
       .replace("{word3}", "<mark>" + esc(C.stage5.answers[2].toLowerCase()) + "</mark>");
     var pd4 = state.progressData.stage4;
     var elapsed = state.startedAt && state.completedAt ? formatTime(state.completedAt - state.startedAt) : "—";
+    var teamName = (state.teamName || "").trim() || f.defaultTeamName;
+    var completionLine = f.completionTemplate
+      .replace("{teamName}", esc(teamName))
+      .replace("{elapsed}", esc(elapsed));
+    var dateStamp = state.completedAt ? formatDateStamp(state.completedAt) : "";
 
     wrap.innerHTML =
-      '<div class="timer-chip">⏱ ' + esc(elapsed) + "</div>" +
+      '<div class="completion-stamp">' +
+      "<div class=\"completion-stamp__line\">" + completionLine + "</div>" +
+      (dateStamp ? '<div class="completion-stamp__date">' + esc(dateStamp) + "</div>" : "") +
+      "</div>" +
       (capturedPhoto
         ? '<div class="slide">' +
           '<div class="slide__title">' + esc(f.logoLabel) + "</div>" +

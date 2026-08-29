@@ -30,10 +30,13 @@ window.CPF_CONTENT = {
     body: [
       "President Tharman is visiting CPF Board in 30 minutes to be briefed on the Board's business.",
       "Unfortunately, a network outage has just wiped out the summary slides prepared for his visit.",
-      "(Please do not Google or use AI to complete this activity; your team will automatically come in last if you do)",
       "IT is unable to recover the files in time. It's down to your team to rebuild the slides before he arrives.",
       "You'll need to solve a series of puzzles to recover the facts, piece the statements back together, and reconstruct the deck.",
     ],
+    // Rendered last, in italics, separately from body[].
+    aiWarning: "Please do not use Google or any AI to complete this activity; your team will automatically come in last if you do.",
+    teamNameLabel: "Give your team a nickname for this activity!",
+    teamNamePlaceholder: "Team name",
     startButton: "Begin the Rebuild",
   },
 
@@ -273,6 +276,8 @@ window.CPF_CONTENT = {
   finale: {
     heading: "Slides Reconstructed",
     subheading: "Ready for Mr Tharman's briefing.",
+    defaultTeamName: "Your Team",
+    completionTemplate: "Completed by {teamName} in {elapsed}",
     slide1: {
       title: "CPF Board — Who We Are",
       founded: "Founded 1 July 1955",
