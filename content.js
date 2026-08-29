@@ -230,7 +230,7 @@ window.CPF_CONTENT = {
       label: "Stage 4A",
       prompt: "Find out how many members we serve! Approach the facilitator for the tool you'll need.",
       inputLabel: "Your answer",
-      inputPlaceholder: "0.0",
+      inputPlaceholder: "",
       answer: "4.3",
       submitButton: "Submit",
       errorMessage: "That's not right. Try again.",
@@ -240,7 +240,7 @@ window.CPF_CONTENT = {
       prompt:
         "Look behind each team's Character Board. Count and add up the total number of GREEN dots you find behind all the Character Boards to get the answer.",
       inputLabel: "Your answer",
-      inputPlaceholder: "0",
+      inputPlaceholder: "",
       answer: "30",
       submitButton: "Submit",
       errorMessage: "That's not right. Try again.",
