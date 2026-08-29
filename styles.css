@@ -44,13 +44,19 @@ html, body {
 .topbar__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold-400);
   opacity: 0.9;
   margin-bottom: 10px;
+}
+
+.topbar__brand-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .topbar__brand .badge {
@@ -64,6 +70,28 @@ html, body {
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
+}
+
+.read-aloud-btn {
+  appearance: none;
+  border: 1px solid rgba(226, 196, 101, 0.5);
+  background: rgba(226, 196, 101, 0.1);
+  color: var(--gold-400);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.read-aloud-btn.speaking {
+  background: var(--gold-500);
+  color: var(--navy-950);
+  border-color: var(--gold-500);
 }
 
 .progress-track {

@@ -258,10 +258,16 @@
   // Render root
   // ---------------------------------------------------------------------
   function render() {
+    // Never let audio from a screen the player has left keep talking.
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+
     var view = state.currentView;
     var html = renderTopbar(view) + '<div class="stage-wrap" id="stageWrap"></div>';
     app.innerHTML = html;
     var wrap = document.getElementById("stageWrap");
+
+    var readBtn = document.getElementById("readAloudBtn");
+    if (readBtn) readBtn.addEventListener("click", function () { toggleReadAloud(wrap, readBtn); });
 
     try {
       switch (view) {
@@ -282,6 +288,33 @@
     }
   }
 
+  // Reads the current stage's visible text aloud via the browser's built-in
+  // speech synthesis (no external service, works offline once the page has
+  // loaded). Tapping again while speaking stops it.
+  function toggleReadAloud(wrap, btn) {
+    if (!("speechSynthesis" in window)) return;
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setReadAloudState(btn, false);
+      return;
+    }
+    var text = (wrap.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    var utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.onend = function () { setReadAloudState(btn, false); };
+    utterance.onerror = function () { setReadAloudState(btn, false); };
+    setReadAloudState(btn, true);
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function setReadAloudState(btn, speaking) {
+    if (!btn) return;
+    btn.textContent = speaking ? "⏸" : "🔊";
+    btn.classList.toggle("speaking", speaking);
+    btn.setAttribute("aria-label", speaking ? "Stop reading this page aloud" : "Read this page aloud");
+  }
+
   // Last-resort fallback so a bug or a stale/corrupted save never leaves a
   // blank screen — always gives the player a way to recover.
   function renderCrash(wrap, err) {
@@ -300,11 +333,17 @@
     });
   }
 
+  function readAloudButtonHtml() {
+    if (!("speechSynthesis" in window)) return "";
+    return '<button class="read-aloud-btn" id="readAloudBtn" type="button" aria-label="Read this page aloud">🔊</button>';
+  }
+
   function renderTopbar(view) {
+    var brandLeft = '<span class="topbar__brand-left"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</span>";
     if (view === 0) {
       return (
         '<div class="topbar">' +
-        '<div class="topbar__brand"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</div>" +
+        '<div class="topbar__brand">' + brandLeft + readAloudButtonHtml() + "</div>" +
         "</div>"
       );
     }
@@ -315,10 +354,10 @@
       else if (view >= STAGE_VIEW_START[i] && view < STAGE_VIEW_END[i]) cls += " active";
       dots += '<div class="' + cls + '"></div>';
     }
-    var caption = view >= 8 ? "All stages complete" : "Stage " + Math.min(currentStageNumber(view), 5) + " of 5";
+    var caption = view >= 9 ? "All stages complete" : "Stage " + Math.min(currentStageNumber(view), 5) + " of 5";
     return (
       '<div class="topbar">' +
-      '<div class="topbar__brand"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</div>" +
+      '<div class="topbar__brand">' + brandLeft + readAloudButtonHtml() + "</div>" +
       '<div class="progress-track">' + dots + "</div>" +
       '<div class="progress-caption">' + caption + "</div>" +
       "</div>"
