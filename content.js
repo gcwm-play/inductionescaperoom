@@ -16,9 +16,10 @@
  */
 window.CPF_CONTENT = {
   meta: {
-    orgName: "CPF Board",
+    // Shown top-left on every screen. Tapping it 10 times in quick
+    // succession triggers a hidden facilitator reset (see app.js).
+    orgName: "CPFB Induction",
     appTitle: "Operation Board Briefing",
-    tagline: "An induction escape room for new joiners",
   },
 
   // ---------------------------------------------------------------------
@@ -37,6 +38,7 @@ window.CPF_CONTENT = {
     aiWarning: "Please do not use Google or any AI to complete this activity; your team will automatically come in last if you do.",
     teamNameLabel: "Give your team a nickname for this activity!",
     teamNamePlaceholder: "Team name",
+    teamNameError: "Please enter a team name before starting.",
     startButton: "Begin the Rebuild",
   },
 

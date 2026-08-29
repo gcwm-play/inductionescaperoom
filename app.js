@@ -22,6 +22,23 @@
   var activeEmail = null; // ephemeral, not persisted
   var capturedPhoto = loadPhoto();
 
+  // Hidden facilitator reset: tap the top-left brand text 10 times within
+  // 1.5s of each other to trigger a confirm-then-reset, from any screen.
+  var BRAND_TAP_THRESHOLD = 10;
+  var BRAND_TAP_WINDOW_MS = 1500;
+  var brandTapCount = 0;
+  var brandTapLastAt = 0;
+  function handleBrandTap() {
+    var now = Date.now();
+    if (now - brandTapLastAt > BRAND_TAP_WINDOW_MS) brandTapCount = 0;
+    brandTapLastAt = now;
+    brandTapCount++;
+    if (brandTapCount >= BRAND_TAP_THRESHOLD) {
+      brandTapCount = 0;
+      confirmDialog("Facilitator reset: clear all progress on this device?", resetAll);
+    }
+  }
+
   // Safety net: catch errors raised outside render()'s own try/catch too
   // (e.g. inside a click handler), so a bug never leaves a dead screen.
   window.addEventListener("error", function (e) {
@@ -269,6 +286,9 @@
     var readBtn = document.getElementById("readAloudBtn");
     if (readBtn) readBtn.addEventListener("click", function () { toggleReadAloud(wrap, readBtn); });
 
+    var brandTapTarget = document.getElementById("brandTapTarget");
+    if (brandTapTarget) brandTapTarget.addEventListener("click", handleBrandTap);
+
     try {
       switch (view) {
         case 0: renderWelcome(wrap); break;
@@ -339,7 +359,7 @@
   }
 
   function renderTopbar(view) {
-    var brandLeft = '<span class="topbar__brand-left"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</span>";
+    var brandLeft = '<span class="topbar__brand-left" id="brandTapTarget"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</span>";
     if (view === 0) {
       return (
         '<div class="topbar">' +
@@ -385,16 +405,23 @@
       '<p style="font-style:italic">' + esc(w.aiWarning) + "</p>" +
       '<label class="field-label" for="teamNameInput">' + esc(w.teamNameLabel) + "</label>" +
       '<input type="text" id="teamNameInput" maxlength="30" autocapitalize="words" autocomplete="off" placeholder="' + esc(w.teamNamePlaceholder) + '" value="' + esc(state.teamName) + '" />' +
-      '<button class="btn btn--primary" id="startBtn" style="margin-top:14px">' + esc(w.startButton) + "</button>" +
+      '<div class="error-text" id="teamNameError"></div>' +
+      '<button class="btn btn--primary" id="startBtn" style="margin-top:4px">' + esc(w.startButton) + "</button>" +
       "</div>" +
-      '<div class="footer-link">' + esc(C.meta.tagline) +
-      '<br><button id="resetLink">Facilitator: reset progress</button></div>';
+      '<div class="footer-link">' +
+      '<button id="resetLink">Facilitator: reset progress</button></div>';
 
     document.getElementById("teamNameInput").addEventListener("input", function (e) {
       state.teamName = e.target.value;
       save();
+      if (e.target.value.trim()) document.getElementById("teamNameError").textContent = "";
     });
     document.getElementById("startBtn").addEventListener("click", function () {
+      if (!(state.teamName || "").trim()) {
+        document.getElementById("teamNameError").textContent = w.teamNameError;
+        shakeEl(document.getElementById("teamNameInput"));
+        return;
+      }
       unlock(Math.max(1, state.maxUnlocked));
     });
     document.getElementById("resetLink").addEventListener("click", function () {
