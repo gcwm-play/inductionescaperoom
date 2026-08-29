@@ -279,8 +279,10 @@ window.CPF_CONTENT = {
     slide2: {
       title: "CPF Board — Vision & Impact",
       visionLabel: "Our Vision",
+      // {word1}/{word2}/{word3} pull live from stage5.answers (lowercased)
+      // and render bolded/highlighted — keep them in this grammatical order.
       visionTemplate:
-        "To be a {word1}, {word2} and {word3} partner, enabling every Singaporean to achieve a secure retirement.",
+        "A {word1} and {word2} social security organisation, {word3} to enable Singaporeans to have a secure retirement.",
       statsLabel: "By the Numbers",
     },
     logoLabel: "CPF Board's Logo",

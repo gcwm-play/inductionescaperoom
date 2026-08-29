@@ -936,9 +936,9 @@
     var f = C.finale;
     var mission = C.stage3.tiles.join(" ");
     var vision = f.slide2.visionTemplate
-      .replace("{word1}", "<mark>" + esc(C.stage5.answers[0]) + "</mark>")
-      .replace("{word2}", "<mark>" + esc(C.stage5.answers[1]) + "</mark>")
-      .replace("{word3}", "<mark>" + esc(C.stage5.answers[2]) + "</mark>");
+      .replace("{word1}", "<mark>" + esc(C.stage5.answers[0].toLowerCase()) + "</mark>")
+      .replace("{word2}", "<mark>" + esc(C.stage5.answers[1].toLowerCase()) + "</mark>")
+      .replace("{word3}", "<mark>" + esc(C.stage5.answers[2].toLowerCase()) + "</mark>");
     var pd4 = state.progressData.stage4;
     var elapsed = state.startedAt && state.completedAt ? formatTime(state.completedAt - state.startedAt) : "—";
 
@@ -963,7 +963,7 @@
       '<div class="slide__label">' + esc(f.slide2.statsLabel) + "</div>" +
       '<div class="slide__stats">' +
       '<div><div class="slide__stat-num">' + esc(pd4.a) + "M</div><div class=\"slide__stat-label\">Members served</div></div>" +
-      '<div><div class="slide__stat-num">' + esc(pd4.b) + '</div><div class="slide__stat-label">National projects</div></div>' +
+      '<div><div class="slide__stat-num">&gt; ' + esc(pd4.b) + '</div><div class="slide__stat-label">National projects</div></div>' +
       "</div>" +
       "</div>" +
       '<div class="card card--navy">' +
