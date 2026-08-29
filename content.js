@@ -116,7 +116,7 @@ window.CPF_CONTENT = {
       },
       {
         from: "Mr Tang <TangLH@cpf.gov.sg>",
-        subject: "Re: Briefing Prep for Mr Tharman's Visit",
+        subject: "Re: Briefing Prep for President Tharman's Visit",
         time: "9:15 AM",
         answerLabel: "Word found in this email",
         answer: "VISION",
@@ -138,7 +138,7 @@ window.CPF_CONTENT = {
   // STAGE 3 — Reassemble the Mission Statement
   // ---------------------------------------------------------------------
   stage3: {
-    title: "Stage 3 · Rebuild the Mission Statement",
+    title: "Stage 3 - Rebuild the Mission Statement",
     intro:
       "A fragment of Slide 1's mission statement was salvaged, but the phrases are out of order. Tap them in the correct sequence to rebuild it.",
     // Shown once, at the top of the first Stage 3 screen (the dept gate),
@@ -157,7 +157,7 @@ window.CPF_CONTENT = {
       intro:
         "While someone tackles Stage 3A above, have someone else start sketching the CPF Board logo on paper, using only this description:",
       clues: [
-        "The Circle, Shield, and Three Keys: Symbolize the completeness of the national savings scheme, the protection of members' retirement security, and the tripartite unity of employees, employers, and the government.",
+        "The Circle, Shield, and Three Keys: Symbolise the completeness of the national savings scheme, the protection of members' retirement security, and the tripartite unity of employees, employers, and the government.",
         "The Colour Green: Signifies constant growth, progress, and dynamism.",
       ],
       note: "You'll photograph the finished drawing right after Stage 3A is solved.",
@@ -233,7 +233,7 @@ window.CPF_CONTENT = {
   // different teammates — Stage 5 unlocks only once BOTH are correct.
   // ---------------------------------------------------------------------
   stage4: {
-    title: "Stage 4 · The Numbers",
+    title: "Stage 4 - The Numbers",
     intro:
       "Slide 2 has missing figures. Split the challenges below between your team members. Solve each challenge and key in your answers to progress.",
     summaryTemplate: "CPF Board serves {members} million members through over {projects} national projects.",
@@ -267,7 +267,7 @@ window.CPF_CONTENT = {
   // the app doesn't assume which field maps to which crossword word).
   // ---------------------------------------------------------------------
   stage5: {
-    title: "Stage 5 · Find the Key Words",
+    title: "Stage 5 - Find the Key Words",
     intro:
       "Find the key words in our Vision. Approach the facilitator for the 3 crossword puzzle for your team to solve to unlock the 3 key words in CPF Board's Vision.",
     hint: "Solve the crossword puzzle completely, and unscramble the highlighted boxes.",
@@ -282,7 +282,7 @@ window.CPF_CONTENT = {
   // ---------------------------------------------------------------------
   finale: {
     heading: "Slides Reconstructed",
-    subheading: "Ready for Mr Tharman's briefing.",
+    subheading: "Ready for President Tharman's briefing.",
     defaultTeamName: "Your Team",
     completionTemplate: "Completed by {teamName} in {elapsed}",
     slide1: {
