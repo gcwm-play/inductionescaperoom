@@ -62,8 +62,7 @@ window.CPF_CONTENT = {
     // Must equal the sum of the decoded puzzleGroups above, zero-padded to 4 digits.
     lockCode: "0107",
     successHeading: "Code cracked.",
-    successBody:
-      "54 + 53 = 107 — that's the day CPF Board was founded: 1 July 1955. Take this code to the physical lock in the room:",
+    successBody: "Use the 4 digit code to open the lock given to you.",
     lockInstruction:
       "Dial 0 – 1 – 0 – 7 on the combination lock. Inside, you'll find a password.",
     continueButton: "I've opened the lock",
@@ -93,13 +92,13 @@ window.CPF_CONTENT = {
     errorMessage: "That's not the right word. Try again.",
     emails: [
       {
-        from: "IT Support <it-support@cpf.internal>",
+        from: "IT Support <it-support@cpf.gov.sg>",
         subject: "Slide Recovery — Update",
         time: "8:41 AM",
         answerLabel: "Word found in this email",
         answer: "MISSION",
         paragraphs: [
-          "Morning team, I wanted to give you a quick update on the recovery attempt for yesterday's incident.",
+          "Morning team, I wanted to give you a quick update on the recovery attempt for today's incident.",
           "Initial checks show the backup drive was mid-sync when the outage hit, so some files may be incomplete.",
           "Several folders have already been restored, including the shared drive for the Board Briefing materials.",
           "Since the two summary slides aren't in the recovered set yet, please hold off recreating them until end of day.",
@@ -109,7 +108,7 @@ window.CPF_CONTENT = {
         ],
       },
       {
-        from: "Priya Nair <priya.nair@cpf.internal>",
+        from: "Mr Tang <TangLH@cpf.gov.sg>",
         subject: "Re: Briefing Prep for Mr Tharman's Visit",
         time: "9:15 AM",
         answerLabel: "Word found in this email",
