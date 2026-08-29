@@ -54,7 +54,7 @@
         },
         stage3b: { done: false },
         stage4: { a: "", b: "" },
-        stage5: { inputs: ["", "", ""], shuffled: null },
+        stage5: { inputs: ["", "", ""] },
       },
     };
   }
@@ -153,17 +153,6 @@
       a[j] = tmp;
     }
     return a;
-  }
-
-  function shuffledLetters(word) {
-    var letters = word.split("");
-    var attempt;
-    var tries = 0;
-    do {
-      attempt = shuffle(letters).join("");
-      tries++;
-    } while (attempt === word && tries < 20);
-    return attempt;
   }
 
   function normalize(str) {
@@ -878,52 +867,59 @@
   }
 
   // ---------------------------------------------------------------------
-  // Stage 5 — anagrams
+  // Stage 5 — 3 key Vision words, unlocked by a physical crossword
   // ---------------------------------------------------------------------
   function renderStage5(wrap) {
     var s = C.stage5;
     var pd = state.progressData.stage5;
 
-    if (!pd.shuffled) {
-      pd.shuffled = s.words.map(function (w) { return shuffledLetters(w.answer); });
-      save();
+    function isTargetWord(val) {
+      var n = normalize(val);
+      return n !== "" && s.answers.indexOf(n) !== -1;
     }
 
-    var cards = s.words
-      .map(function (w, i) {
+    var fields = s.wordLabels
+      .map(function (label, i) {
         var val = pd.inputs[i] || "";
-        var correct = normalize(val) === normalize(w.answer);
+        var correct = isTargetWord(val);
         return (
-          '<div class="anagram-card">' +
-          '<div class="anagram-word">' + esc(pd.shuffled[i]) + "</div>" +
-          '<div class="anagram-clue">' + esc(w.clue) + "</div>" +
-          '<input type="text" data-anagram="' + i + '" autocomplete="off" autocapitalize="characters" value="' + esc(val) + '" ' +
-          (correct ? "disabled" : "") + " />" +
-          (correct ? '<div class="success-banner" style="margin-top:8px">✓ ' + esc(w.answer) + "</div>" : "") +
-          "</div>"
+          '<label class="field-label" for="s5word' + i + '">' + esc(label) + "</label>" +
+          '<input type="text" class="word-input ' + (correct ? "word-input--correct" : "word-input--wrong") + '" ' +
+          'id="s5word' + i + '" data-word="' + i + '" autocomplete="off" value="' + esc(val) + '" />'
         );
       })
       .join("");
 
-    var allCorrect = s.words.every(function (w, i) { return normalize(pd.inputs[i]) === normalize(w.answer); });
+    // Stage is solved once the 3 typed words, as a set, exactly match the
+    // 3 target words — this also rules out typing the same word 3 times.
+    var sortedInputs = pd.inputs.map(normalize).slice().sort();
+    var sortedAnswers = s.answers.slice().sort();
+    var allCorrect = sortedInputs.length === sortedAnswers.length && sortedInputs.every(function (v, i) { return v === sortedAnswers[i]; });
 
     wrap.innerHTML =
       '<div class="card">' +
       "<h2>" + esc(s.title) + "</h2>" +
       "<p>" + esc(s.intro) + "</p>" +
-      cards +
+      "<p>" + esc(s.hint) + "</p>" +
+      fields +
       (allCorrect
         ? '<button class="btn btn--primary" id="s5continue" style="margin-top:10px">' + esc(s.continueButton) + "</button>"
         : "") +
       "</div>";
 
-    Array.prototype.forEach.call(wrap.querySelectorAll("[data-anagram]"), function (el) {
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-word]"), function (el) {
       el.addEventListener("input", function () {
-        var i = parseInt(el.getAttribute("data-anagram"), 10);
+        var i = parseInt(el.getAttribute("data-word"), 10);
+        var caret = el.selectionStart;
+        el.value = el.value.toUpperCase();
+        if (caret !== null) el.setSelectionRange(caret, caret);
         pd.inputs[i] = el.value;
         save();
-        var isNowCorrect = normalize(el.value) === normalize(s.words[i].answer);
-        if (isNowCorrect) renderStage5(wrap);
+        el.classList.toggle("word-input--correct", isTargetWord(el.value));
+        el.classList.toggle("word-input--wrong", !isTargetWord(el.value));
+        var sorted = pd.inputs.map(normalize).slice().sort();
+        var isNowAllCorrect = sorted.length === sortedAnswers.length && sorted.every(function (v, idx) { return v === sortedAnswers[idx]; });
+        if (isNowAllCorrect) renderStage5(wrap);
       });
     });
 
@@ -939,9 +935,9 @@
     var f = C.finale;
     var mission = C.stage3.tiles.join(" ");
     var vision = f.slide2.visionTemplate
-      .replace("{word1}", "<mark>" + esc(C.stage5.words[0].answer) + "</mark>")
-      .replace("{word2}", "<mark>" + esc(C.stage5.words[1].answer) + "</mark>")
-      .replace("{word3}", "<mark>" + esc(C.stage5.words[2].answer) + "</mark>");
+      .replace("{word1}", "<mark>" + esc(C.stage5.answers[0]) + "</mark>")
+      .replace("{word2}", "<mark>" + esc(C.stage5.answers[1]) + "</mark>")
+      .replace("{word3}", "<mark>" + esc(C.stage5.answers[2]) + "</mark>");
     var pd4 = state.progressData.stage4;
     var elapsed = state.startedAt && state.completedAt ? formatTime(state.completedAt - state.startedAt) : "—";
 

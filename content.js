@@ -248,26 +248,19 @@ window.CPF_CONTENT = {
   },
 
   // ---------------------------------------------------------------------
-  // STAGE 5 — Anagrams: TRUSTED, RESPECTED, COMMITTED
+  // STAGE 5 — Physical/facilitator-led crossword unlocks 3 key Vision
+  // words. The app just collects the 3 typed answers, live-colouring each
+  // field red/green as the team types, and validates the SET of all three
+  // against the answers below (any answer in any of the 3 fields counts —
+  // the app doesn't assume which field maps to which crossword word).
   // ---------------------------------------------------------------------
   stage5: {
-    title: "Stage 5 · The Final Words",
+    title: "Stage 5 · Find the Key Words",
     intro:
-      "Three words from our Vision statement got scrambled in the outage. Unscramble each using its clue.",
-    words: [
-      {
-        answer: "TRUSTED",
-        clue: "Millions place their life savings in our hands — we must always be ______.",
-      },
-      {
-        answer: "RESPECTED",
-        clue: "Held in high regard across Singapore for decades of reliable service — ______.",
-      },
-      {
-        answer: "COMMITTED",
-        clue: "Devoted to serving every member, for life — ______.",
-      },
-    ],
+      "Find the key words in our Vision. Approach the facilitator for the 3 crossword puzzle for your team to solve to unlock the 3 key words in CPF Board's Vision.",
+    hint: "Solve the crossword puzzle completely, and unscramble the highlighted boxes.",
+    wordLabels: ["Word 1", "Word 2", "Word 3"],
+    answers: ["TRUSTED", "RESPECTED", "COMMITTED"],
     continueButton: "Reconstruct the Slides",
   },
 

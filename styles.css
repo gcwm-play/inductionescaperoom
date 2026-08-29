@@ -426,23 +426,14 @@ input:focus { outline: none; border-color: var(--gold-500); }
 }
 .number-summary strong { color: var(--gold-400); }
 
-.anagram-card {
-  background: #fff;
-  border: 1px solid #e7e1cf;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
+input.word-input {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
 }
-.anagram-word {
-  font-family: "Courier New", monospace;
-  font-size: 1.5rem;
-  letter-spacing: 0.25em;
-  font-weight: 800;
-  color: var(--navy-900);
-  text-align: center;
-  margin: 6px 0 12px;
-}
-.anagram-clue { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 10px; }
+input.word-input--wrong { color: var(--red); }
+input.word-input--correct { color: var(--green); font-weight: 800; border-color: var(--green); }
 
 .slide {
   background: #fff;
