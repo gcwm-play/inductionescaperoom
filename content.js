@@ -135,6 +135,23 @@ window.CPF_CONTENT = {
     intro:
       "A fragment of Slide 1's mission statement was salvaged, but the phrases are out of order. Tap them in the correct sequence to rebuild it.",
     // -----------------------------------------------------------------
+    // Real-world team task shown alongside Stage 3A: while some of the
+    // team solves the department gate and tile puzzle, someone else
+    // starts drawing the CPF Board logo from this description. They
+    // photograph it in Stage 3B, right after the tiles are solved.
+    // -----------------------------------------------------------------
+    logoTask: {
+      eyebrow: "Team Task",
+      heading: "Meanwhile — draw the CPF Board logo",
+      intro:
+        "Split up the work. While someone tackles the puzzles below, have someone else start sketching the CPF Board logo on paper, using only this description:",
+      clues: [
+        "The Circle, Shield, and Three Keys: Symbolize the completeness of the national savings scheme, the protection of members' retirement security, and the tripartite unity of employees, employers, and the government.",
+        "The Colour Green: Signifies constant growth, progress, and dynamism.",
+      ],
+      note: "You'll photograph the finished drawing right after piecing together the Mission statement below.",
+    },
+    // -----------------------------------------------------------------
     // Gate puzzle shown BEFORE the phrase tiles: pick the real CPF
     // departments out of a list of 15. Exactly 5 are real; the other 10
     // are decoys. Player must select the exact set of 5 correct codes.
@@ -178,6 +195,22 @@ window.CPF_CONTENT = {
     ],
     successHeading: "Mission statement restored.",
     continueButton: "Continue",
+  },
+
+  // ---------------------------------------------------------------------
+  // STAGE 3B — Photograph the team's CPF Board logo drawing
+  // ---------------------------------------------------------------------
+  stage3b: {
+    eyebrow: "Stage 3B",
+    title: "Capture Your Team's Logo",
+    intro: "Take a photo of the CPF Board logo your team drew.",
+    permissionNote: "Tapping the button below will ask for camera access — allow it to continue.",
+    captureButton: "Open Camera",
+    retakeButton: "Retake Photo",
+    continueButton: "Continue",
+    // Shown if the photo can't be saved for later (e.g. device storage full) —
+    // the player can still continue, it just may not survive a page reload.
+    storageWarning: "Couldn't save your photo for later on this device, but it'll still show on the final screen for now.",
   },
 
   // ---------------------------------------------------------------------
@@ -253,6 +286,7 @@ window.CPF_CONTENT = {
         "To be a {word1}, {word2} and {word3} partner, enabling every Singaporean to achieve a secure retirement.",
       statsLabel: "By the Numbers",
     },
+    logoLabel: "Your Team's Logo",
     completionHeading: "Mission Complete",
     completionBody:
       "Both slides are rebuilt and ready. Show this screen to your facilitator to confirm your team is done.",

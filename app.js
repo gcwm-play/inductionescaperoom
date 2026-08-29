@@ -7,16 +7,20 @@
 
   var C = window.CPF_CONTENT;
   var STORAGE_KEY = "cpf_escape_progress_v1";
+  // Photo lives under its own key so a large/failed image save can never
+  // take the core progress save down with it.
+  var PHOTO_STORAGE_KEY = "cpf_escape_photo_v1";
 
   // View indices:
-  // 0 welcome | 1 stage1 | 2 stage1success | 3 gate | 4 stage2
-  // 5 stage3  | 6 stage4 | 7 stage5        | 8 finale
-  var STAGE_VIEW_START = [1, 4, 5, 6, 7];
-  var STAGE_VIEW_END = [4, 5, 6, 7, 8];
+  // 0 welcome | 1 stage1 | 2 stage1success | 3 gate     | 4 stage2
+  // 5 stage3  | 6 stage3b (logo photo) | 7 stage4 | 8 stage5 | 9 finale
+  var STAGE_VIEW_START = [1, 4, 5, 7, 8];
+  var STAGE_VIEW_END = [4, 5, 7, 8, 9];
 
   var app = document.getElementById("app");
   var state = loadState();
   var activeEmail = null; // ephemeral, not persisted
+  var capturedPhoto = loadPhoto();
 
   // Safety net: catch errors raised outside render()'s own try/catch too
   // (e.g. inside a click handler), so a bug never leaves a dead screen.
@@ -48,6 +52,7 @@
           placedOrder: [],
           shuffled: null,
         },
+        stage3b: { done: false },
         stage4: { m1: "", m2: "", p1: "" },
         stage5: { inputs: ["", "", ""], shuffled: null },
       },
@@ -76,9 +81,31 @@
     }
   }
 
+  // Photo is stored separately from the main progress save (see
+  // PHOTO_STORAGE_KEY) so a large or failed image write never risks the
+  // rest of the team's progress.
+  function loadPhoto() {
+    try {
+      return localStorage.getItem(PHOTO_STORAGE_KEY) || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function savePhoto(dataUrl) {
+    try {
+      localStorage.setItem(PHOTO_STORAGE_KEY, dataUrl);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function resetAll() {
     state = defaultState();
     activeEmail = null;
+    capturedPhoto = null;
+    try { localStorage.removeItem(PHOTO_STORAGE_KEY); } catch (e) {}
     save();
     render();
   }
@@ -94,7 +121,7 @@
   function unlock(view) {
     state.maxUnlocked = Math.max(state.maxUnlocked, view);
     if (view >= 1 && !state.startedAt) state.startedAt = Date.now();
-    if (view >= 8 && !state.completedAt) state.completedAt = Date.now();
+    if (view >= 9 && !state.completedAt) state.completedAt = Date.now();
     state.currentView = view;
     save();
     render();
@@ -240,9 +267,10 @@
         case 3: renderGate(wrap); break;
         case 4: renderStage2(wrap); break;
         case 5: renderStage3(wrap); break;
-        case 6: renderStage4(wrap); break;
-        case 7: renderStage5(wrap); break;
-        case 8: renderFinale(wrap); break;
+        case 6: renderStage3Camera(wrap); break;
+        case 7: renderStage4(wrap); break;
+        case 8: renderStage5(wrap); break;
+        case 9: renderFinale(wrap); break;
         default: renderWelcome(wrap);
       }
     } catch (err) {
@@ -553,7 +581,19 @@
       })
       .join("");
 
+    var lt = s.logoTask;
+    var cluesHtml = lt.clues.map(function (c) { return '<div class="clue-item">' + esc(c) + "</div>"; }).join("");
+    var logoTaskHtml =
+      '<div class="card card--navy">' +
+      '<span class="eyebrow">' + esc(lt.eyebrow) + "</span>" +
+      "<h3>" + esc(lt.heading) + "</h3>" +
+      "<p>" + esc(lt.intro) + "</p>" +
+      '<div class="clue-list">' + cluesHtml + "</div>" +
+      "<p>" + esc(lt.note) + "</p>" +
+      "</div>";
+
     wrap.innerHTML =
+      logoTaskHtml +
       '<div class="card">' +
       (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
       "<h2>" + esc(s.title) + "</h2>" +
@@ -676,6 +716,92 @@
   }
 
   // ---------------------------------------------------------------------
+  // Stage 3B — photograph the team's logo drawing
+  // ---------------------------------------------------------------------
+
+  // Resizes/re-encodes a captured photo client-side before it's stored, so
+  // a multi-MB phone photo becomes a small JPEG data URL (~100-300KB).
+  function compressImageFile(file, maxDim, quality, callback) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var w = Math.max(1, Math.round(img.width * scale));
+        var h = Math.max(1, Math.round(img.height * scale));
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          callback(canvas.toDataURL("image/jpeg", quality));
+        } catch (err) {
+          callback(null);
+        }
+      };
+      img.onerror = function () { callback(null); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function () { callback(null); };
+    reader.readAsDataURL(file);
+  }
+
+  function renderStage3Camera(wrap) {
+    var s = C.stage3b;
+    var pd = state.progressData.stage3b;
+
+    var previewHtml = capturedPhoto
+      ? '<img class="photo-preview" src="' + capturedPhoto + '" alt="Team logo drawing" />'
+      : "";
+
+    wrap.innerHTML =
+      '<div class="card">' +
+      (s.eyebrow ? '<span class="eyebrow">' + esc(s.eyebrow) + "</span>" : "") +
+      "<h2>" + esc(s.title) + "</h2>" +
+      "<p>" + esc(s.intro) + "</p>" +
+      previewHtml +
+      (capturedPhoto ? "" : '<p style="font-size:0.82rem">' + esc(s.permissionNote) + "</p>") +
+      '<div class="error-text" id="photoError"></div>' +
+      '<input type="file" accept="image/*" capture="environment" id="photoInput" hidden />' +
+      '<button class="btn btn--primary" id="photoCaptureBtn" style="margin-top:10px">' +
+      esc(capturedPhoto ? s.retakeButton : s.captureButton) +
+      "</button>" +
+      (capturedPhoto
+        ? '<button class="btn btn--dark" id="photoContinueBtn" style="margin-top:10px">' + esc(s.continueButton) + "</button>"
+        : "") +
+      "</div>";
+
+    var fileInput = document.getElementById("photoInput");
+    document.getElementById("photoCaptureBtn").addEventListener("click", function () {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      compressImageFile(file, 900, 0.7, function (dataUrl) {
+        if (!dataUrl) {
+          document.getElementById("photoError").textContent = "That photo didn't load — try again.";
+          return;
+        }
+        capturedPhoto = dataUrl;
+        var ok = savePhoto(dataUrl);
+        pd.done = true;
+        save();
+        if (!ok) document.getElementById("photoError").textContent = s.storageWarning;
+        renderStage3Camera(wrap);
+      });
+    });
+
+    if (capturedPhoto) {
+      document.getElementById("photoContinueBtn").addEventListener("click", function () {
+        unlock(7);
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Stage 4 — numbers
   // ---------------------------------------------------------------------
   function renderStage4(wrap) {
@@ -726,7 +852,7 @@
     });
 
     if (allCorrect) {
-      document.getElementById("s4continue").addEventListener("click", function () { unlock(7); });
+      document.getElementById("s4continue").addEventListener("click", function () { unlock(8); });
     }
   }
 
@@ -781,7 +907,7 @@
     });
 
     if (allCorrect) {
-      document.getElementById("s5continue").addEventListener("click", function () { unlock(8); });
+      document.getElementById("s5continue").addEventListener("click", function () { unlock(9); });
     }
   }
 
@@ -816,6 +942,12 @@
       '<div><div class="slide__stat-num">' + esc(pd4.p1) + '</div><div class="slide__stat-label">National projects</div></div>' +
       "</div>" +
       "</div>" +
+      (capturedPhoto
+        ? '<div class="slide">' +
+          '<div class="slide__title">' + esc(f.logoLabel) + "</div>" +
+          '<img class="photo-preview" src="' + capturedPhoto + '" alt="Team logo drawing" />' +
+          "</div>"
+        : "") +
       '<div class="card card--navy">' +
       "<h2>" + esc(f.completionHeading) + "</h2>" +
       "<p>" + esc(f.completionBody) + "</p>" +
