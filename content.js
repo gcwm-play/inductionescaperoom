@@ -139,22 +139,27 @@ window.CPF_CONTENT = {
     title: "Stage 3 · Rebuild the Mission Statement",
     intro:
       "A fragment of Slide 1's mission statement was salvaged, but the phrases are out of order. Tap them in the correct sequence to rebuild it.",
+    // Shown once, at the top of the first Stage 3 screen (the dept gate),
+    // before either task's card.
+    splitNotice: "This stage has 2 tasks — please split the work between your team members.",
     // -----------------------------------------------------------------
-    // Real-world team task shown alongside Stage 3A: while some of the
-    // team solves the department gate and tile puzzle, someone else
-    // starts drawing the CPF Board logo from this description. They
-    // photograph it in Stage 3B, right after the tiles are solved.
+    // Real-world team task, shown alongside Stage 3A (the dept gate):
+    // while some of the team solves the department gate and tile puzzle
+    // (Stage 3A), someone else starts drawing the CPF Board logo from
+    // this description. They photograph it in Stage 3B proper (the
+    // camera screen), right after the tiles are solved.
     // -----------------------------------------------------------------
     logoTask: {
-      eyebrow: "Team Task",
-      heading: "Meanwhile — draw the CPF Board logo",
+      eyebrow: "Stage 3B",
+      heading: "Draw the CPF Board Logo",
       intro:
-        "Split up the work. While someone tackles the puzzles below, have someone else start sketching the CPF Board logo on paper, using only this description:",
+        "While someone tackles Stage 3A above, have someone else start sketching the CPF Board logo on paper, using only this description:",
       clues: [
         "The Circle, Shield, and Three Keys: Symbolize the completeness of the national savings scheme, the protection of members' retirement security, and the tripartite unity of employees, employers, and the government.",
         "The Colour Green: Signifies constant growth, progress, and dynamism.",
       ],
-      note: "You'll photograph the finished drawing right after piecing together the Mission statement below.",
+      note: "You'll photograph the finished drawing right after Stage 3A is solved.",
+      noSearchWarning: "Don't search online for the real CPF Board logo — draw it from memory using only the description above.",
     },
     // -----------------------------------------------------------------
     // Gate puzzle shown BEFORE the phrase tiles: pick the real CPF

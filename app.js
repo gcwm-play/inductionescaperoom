@@ -601,10 +601,11 @@
       "<p>" + esc(lt.intro) + "</p>" +
       '<div class="clue-list">' + cluesHtml + "</div>" +
       "<p>" + esc(lt.note) + "</p>" +
+      '<p style="font-style:italic">' + esc(lt.noSearchWarning) + "</p>" +
       "</div>";
 
     wrap.innerHTML =
-      logoTaskHtml +
+      '<div class="notice-box">' + esc(s.splitNotice) + "</div>" +
       '<div class="card">' +
       (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
       "<h2>" + esc(s.title) + "</h2>" +
@@ -613,7 +614,8 @@
       '<div class="dept-grid">' + itemsHtml + "</div>" +
       '<div class="error-text" id="deptError"></div>' +
       '<button class="btn btn--primary" id="deptSubmit" style="margin-top:10px">' + esc(dc.submitButton) + "</button>" +
-      "</div>";
+      "</div>" +
+      logoTaskHtml;
 
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-dept]"), function (el) {
       el.addEventListener("change", function () {
