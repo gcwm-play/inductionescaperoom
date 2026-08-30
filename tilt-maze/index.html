@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Tilt Maze — CPF Board Induction</title>
+<meta name="description" content="Standalone tilt-sensor ball maze — a second-device puzzle for the CPF Board induction escape room." />
+<meta name="theme-color" content="#0B2545" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B2545'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23D4AF37'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --navy-950: #081a33;
+    --navy-900: #0b2545;
+    --navy-800: #123563;
+    --gold-500: #d4af37;
+    --gold-400: #e2c465;
+    --gold-300: #f0dc9a;
+    --paper: #f7f4ec;
+    --ink-soft: rgba(247, 244, 236, 0.72);
+    --red: #c23b3b;
+    --green: #1e8e5a;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: linear-gradient(180deg, var(--navy-950), var(--navy-900) 45%, var(--navy-800));
+    color: var(--paper);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+  #app {
+    max-width: 460px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 18px 18px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gold-500);
+    display: block;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  p { line-height: 1.5; margin: 0; color: var(--ink-soft); font-size: 0.92rem; }
+
+  .card {
+    background: linear-gradient(160deg, var(--navy-800), var(--navy-900));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .card p + p { margin-top: 8px; }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 999px;
+    padding: 13px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn--primary { background: var(--gold-500); color: var(--navy-950); }
+  .btn--ghost {
+    background: transparent;
+    border: 1px solid rgba(247, 244, 236, 0.35);
+    color: var(--paper);
+  }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .btn { flex: 1; }
+  .btn--small { padding: 9px 14px; font-size: 0.8rem; }
+
+  .stage {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .stage.active { display: flex; }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hud__stat { text-align: center; }
+  .hud__stat-num {
+    font-family: "Courier New", monospace;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--gold-400);
+    display: block;
+  }
+  .hud__stat-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  .maze-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 300 / 520;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 2px solid var(--gold-500);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    background: var(--navy-950);
+    touch-action: none;
+  }
+  #maze { display: block; width: 100%; height: 100%; }
+
+  .notice {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--gold-300);
+    min-height: 1.2em;
+    transition: opacity 0.3s ease;
+  }
+
+  .debug-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    justify-content: center;
+  }
+  .debug-panel {
+    display: none;
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: "Courier New", monospace;
+    font-size: 0.78rem;
+    color: var(--gold-300);
+    justify-content: space-between;
+  }
+  .debug-panel.show { display: flex; }
+  .debug-count {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sensor-badge {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--gold-300);
+  }
+  .sensor-badge.ok { background: rgba(30, 142, 90, 0.18); border-color: var(--green); color: #a9f0cf; }
+  .sensor-badge.bad { background: rgba(194, 59, 59, 0.18); border-color: var(--red); color: #ffb3b3; }
+
+  .keys-hint {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 26, 51, 0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 20;
+  }
+  .overlay.show { display: flex; }
+  .overlay__box {
+    background: linear-gradient(160deg, var(--navy-800), var(--navy-900));
+    border: 1px solid var(--gold-500);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+  }
+  .overlay__box h2 {
+    font-family: Georgia, serif;
+    color: var(--gold-400);
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+  }
+  .overlay__stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 16px 0;
+  }
+
+  .reveal-code {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 4px 0 18px;
+  }
+  .reveal-code__digit {
+    width: 42px;
+    height: 52px;
+    background: var(--navy-950);
+    border: 2px solid var(--gold-500);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gold-400);
+    font-family: "Courier New", monospace;
+  }
+  .reveal-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .footer-note {
+    text-align: center;
+    font-size: 0.72rem;
+    color: rgba(247, 244, 236, 0.4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div>
+    <span class="eyebrow">CPF Board Induction · Side Puzzle</span>
+    <h1>Tilt Maze</h1>
+  </div>
+
+  <!-- SETUP STAGE -->
+  <div class="stage active" id="stageSetup">
+    <div class="card">
+      <p><strong>Lay the phone flat</strong> inside the contraption before you start — the maze reads how far it's tilted from that resting position.</p>
+      <p>Tap <strong>Calibrate &amp; Start</strong>, hold the tray level for a second while it zeroes, then tilt gently to roll the ball from the top down to the green goal. Avoid the holes — falling in resets the ball to the start.</p>
+    </div>
+    <button class="btn btn--primary" id="startBtn">Calibrate &amp; Start</button>
+    <p class="keys-hint">No phone handy? Use the arrow keys (or WASD) on a keyboard to test the logic first.</p>
+  </div>
+
+  <!-- PLAY STAGE -->
+  <div class="stage" id="stagePlay">
+    <div class="sensor-badge" id="sensorBadge">Waiting for first sensor reading…</div>
+
+    <div class="hud">
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="timeStat">0:00</span>
+        <span class="hud__stat-label">Time</span>
+      </div>
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="attemptsStat">0</span>
+        <span class="hud__stat-label">Holes fallen</span>
+      </div>
+    </div>
+
+    <div class="maze-wrap">
+      <canvas id="maze"></canvas>
+    </div>
+
+    <p class="notice" id="notice">&nbsp;</p>
+
+    <div class="btn-row">
+      <button class="btn btn--ghost btn--small" id="recalibrateBtn">Recalibrate</button>
+      <button class="btn btn--ghost btn--small" id="restartBtn">Restart Maze</button>
+    </div>
+
+    <!-- Debug readout is on by default in this test build so sensor behavior is visible without hunting for a toggle. -->
+    <div class="debug-toggle">
+      <input type="checkbox" id="debugToggle" checked />
+      <label for="debugToggle">Show sensor debug values</label>
+    </div>
+    <div class="debug-panel show" id="debugPanel">
+      <span id="debugRaw">beta — / gamma —</span>
+      <span id="debugTilt">tiltX 0.0 / tiltY 0.0</span>
+    </div>
+    <p class="debug-count" id="debugCount">Sensor events received: 0</p>
+  </div>
+
+  <p class="footer-note">Standalone puzzle page — separate from the main escape room app.</p>
+</div>
+
+<div class="overlay" id="winOverlay">
+  <div class="overlay__box">
+    <h2>Maze Complete!</h2>
+    <p>The ball made it to the goal. Bring this code back to your team's main device:</p>
+    <div class="reveal-label">Your code</div>
+    <div class="reveal-code" id="revealCode"></div>
+    <div class="overlay__stats">
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="winTime">0:00</span>
+        <span class="hud__stat-label">Time</span>
+      </div>
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="winAttempts">0</span>
+        <span class="hud__stat-label">Holes fallen</span>
+      </div>
+    </div>
+    <button class="btn btn--primary" id="playAgainBtn">Play Again</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------------
+  // The code shown on the win screen — change this to whatever answer
+  // this maze should feed back into the main escape room app once you've
+  // decided which stage it slots into.
+  // ---------------------------------------------------------------------
+  var REVEAL_CODE = "1847";
+
+  // ---------------------------------------------------------------------
+  // Virtual maze coordinate space (scaled to the canvas element at draw time)
+  // ---------------------------------------------------------------------
+  var W = 300, H = 520;
+  var startPos = { x: 150, y: 34 };
+  var goal = { x: 150, y: 492, r: 26 };
+
+  // Switchback corridor: alternating barriers from left/right walls.
+  var walls = [
+    { x: 0,   y: 100, w: 210, h: 16 },
+    { x: 90,  y: 200, w: 210, h: 16 },
+    { x: 0,   y: 300, w: 210, h: 16 },
+    { x: 90,  y: 400, w: 210, h: 16 },
+  ];
+
+  var holes = [
+    { x: 255, y: 60,  r: 14 },
+    { x: 45,  y: 160, r: 14 },
+    { x: 255, y: 260, r: 14 },
+    { x: 45,  y: 360, r: 14 },
+    { x: 150, y: 452, r: 13 },
+  ];
+
+  var ball = { x: startPos.x, y: startPos.y, vx: 0, vy: 0, r: 9 };
+
+  // ---------------------------------------------------------------------
+  // Physics tuning — deliberately gentle per request ("shouldn't be too
+  // difficult"): low acceleration, strong friction, low speed cap.
+  // ---------------------------------------------------------------------
+  var ACCEL = 0.013;
+  var FRICTION = 0.90;
+  var MAX_SPEED = 2.0;
+  var TILT_CLAMP = 30;
+
+  var canvas = document.getElementById("maze");
+  var ctx = canvas.getContext("2d");
+
+  var stageSetup = document.getElementById("stageSetup");
+  var stagePlay = document.getElementById("stagePlay");
+  var noticeEl = document.getElementById("notice");
+  var timeStat = document.getElementById("timeStat");
+  var attemptsStat = document.getElementById("attemptsStat");
+  var debugToggle = document.getElementById("debugToggle");
+  var debugPanel = document.getElementById("debugPanel");
+  var debugRaw = document.getElementById("debugRaw");
+  var debugTilt = document.getElementById("debugTilt");
+  var winOverlay = document.getElementById("winOverlay");
+  var revealCodeEl = document.getElementById("revealCode");
+
+  var sensorBadge = document.getElementById("sensorBadge");
+  var debugCount = document.getElementById("debugCount");
+
+  var baseline = { beta: 0, gamma: 0 };
+  var liveTilt = { beta: 0, gamma: 0 };
+  var keyTilt = { x: 0, y: 0 };
+  var calibrated = false;
+  var usingFallback = false;
+  var eventCount = 0;
+  var running = false;
+  var solved = false;
+  var attempts = 0;
+  var startTime = null;
+  var lastFrameT = null;
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function setNotice(text) { noticeEl.textContent = text || " "; }
+
+  function setSensorBadge(text, cls) {
+    sensorBadge.textContent = text;
+    sensorBadge.className = "sensor-badge" + (cls ? " " + cls : "");
+  }
+
+  function resizeCanvas() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr * (rect.width / W), 0, 0, dpr * (rect.height / H), 0, 0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  // ---------------------------------------------------------------------
+  // Sensor handling
+  // ---------------------------------------------------------------------
+  function handleOrientation(e) {
+    if (e.beta === null || e.gamma === null) return;
+    eventCount++;
+    liveTilt.beta = e.beta;
+    liveTilt.gamma = e.gamma;
+    if (!calibrated) {
+      baseline.beta = e.beta;
+      baseline.gamma = e.gamma;
+      calibrated = true;
+      onCalibrated();
+    } else if (usingFallback) {
+      // A real reading showed up after we'd already given up and switched
+      // to keyboard-only — recalibrate against it and hand control back to
+      // the sensor instead of staying stuck on the fallback forever.
+      usingFallback = false;
+      baseline.beta = e.beta;
+      baseline.gamma = e.gamma;
+      setSensorBadge("Sensor connected — recalibrated", "ok");
+      setNotice("Sensor found! Switched back to tilt control.");
+    }
+    if (debugCount) debugCount.textContent = "Sensor events received: " + eventCount;
+  }
+
+  function beginCalibration() {
+    setNotice("Requesting motion access…");
+    setSensorBadge("Waiting for first sensor reading…");
+    var hasAPI = typeof window.DeviceOrientationEvent !== "undefined";
+    var needsPermission = hasAPI && typeof DeviceOrientationEvent.requestPermission === "function";
+
+    if (needsPermission) {
+      DeviceOrientationEvent.requestPermission()
+        .then(function (state) {
+          if (state === "granted") {
+            window.addEventListener("deviceorientation", handleOrientation);
+            waitForFirstReading();
+          } else {
+            setNotice("Motion access denied — using arrow keys instead.");
+            setSensorBadge("Motion access denied — keyboard fallback active", "bad");
+            calibrated = true;
+            usingFallback = true;
+            onCalibrated();
+          }
+        })
+        .catch(function () {
+          setNotice("Couldn't get motion access — using arrow keys instead.");
+          setSensorBadge("Motion access unavailable — keyboard fallback active", "bad");
+          calibrated = true;
+          usingFallback = true;
+          onCalibrated();
+        });
+    } else if (hasAPI) {
+      window.addEventListener("deviceorientation", handleOrientation);
+      waitForFirstReading();
+    } else {
+      setNotice("No tilt sensor detected — using arrow keys instead.");
+      setSensorBadge("No DeviceOrientationEvent support — keyboard fallback active", "bad");
+      calibrated = true;
+      usingFallback = true;
+      onCalibrated();
+    }
+  }
+
+  function waitForFirstReading() {
+    setTimeout(function () {
+      if (!calibrated) {
+        setNotice("No sensor data came through — using arrow keys instead.");
+        setSensorBadge("No sensor data received — keyboard fallback active (still listening)", "bad");
+        calibrated = true;
+        usingFallback = true;
+        onCalibrated();
+      }
+    }, 2500);
+  }
+
+  function onCalibrated() {
+    stageSetup.classList.remove("active");
+    stagePlay.classList.add("active");
+    resizeCanvas();
+    resetBall();
+    attempts = 0;
+    solved = false;
+    running = true;
+    startTime = Date.now();
+    if (!usingFallback) {
+      setSensorBadge("Sensor active — tilt to steer", "ok");
+      setNotice("Go — tilt gently toward the goal.");
+    } else {
+      setNotice("Using arrow keys — tilt data will take over automatically if it arrives.");
+    }
+    updateHud();
+    requestAnimationFrame(tick);
+  }
+
+  function vibrate(pattern) {
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+  }
+
+  // ---------------------------------------------------------------------
+  // Keyboard fallback (desktop testing)
+  // ---------------------------------------------------------------------
+  var KEY_TILT = 18;
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keyTilt.x = -KEY_TILT;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keyTilt.x = KEY_TILT;
+    if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") keyTilt.y = -KEY_TILT;
+    if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") keyTilt.y = KEY_TILT;
+  });
+  window.addEventListener("keyup", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") if (keyTilt.x < 0) keyTilt.x = 0;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") if (keyTilt.x > 0) keyTilt.x = 0;
+    if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") if (keyTilt.y < 0) keyTilt.y = 0;
+    if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") if (keyTilt.y > 0) keyTilt.y = 0;
+  });
+
+  // ---------------------------------------------------------------------
+  // Physics
+  // ---------------------------------------------------------------------
+  function resetBall() {
+    ball.x = startPos.x;
+    ball.y = startPos.y;
+    ball.vx = 0;
+    ball.vy = 0;
+  }
+
+  function resolveWallCollision(b, w) {
+    var closestX = clamp(b.x, w.x, w.x + w.w);
+    var closestY = clamp(b.y, w.y, w.y + w.h);
+    var dx = b.x - closestX, dy = b.y - closestY;
+    var distSq = dx * dx + dy * dy;
+    if (distSq < b.r * b.r) {
+      var dist = Math.sqrt(distSq);
+      var nx, ny;
+      if (dist < 0.0001) { nx = 0; ny = -1; dist = 0.0001; }
+      else { nx = dx / dist; ny = dy / dist; }
+      var overlap = b.r - dist;
+      b.x += nx * overlap;
+      b.y += ny * overlap;
+      var vn = b.vx * nx + b.vy * ny;
+      if (vn < 0) { b.vx -= vn * nx; b.vy -= vn * ny; }
+    }
+  }
+
+  function fallInHole() {
+    attempts++;
+    setNotice("Fell in a hole — back to the start.");
+    vibrate(80);
+    resetBall();
+    updateHud();
+  }
+
+  function winGame() {
+    solved = true;
+    running = false;
+    var elapsed = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById("winTime").textContent = formatTime(elapsed);
+    document.getElementById("winAttempts").textContent = attempts;
+    revealCodeEl.innerHTML = REVEAL_CODE.split("").map(function (d) {
+      return '<div class="reveal-code__digit">' + d + "</div>";
+    }).join("");
+    winOverlay.classList.add("show");
+    vibrate([50, 50, 50]);
+  }
+
+  function formatTime(totalSec) {
+    var m = Math.floor(totalSec / 60);
+    var s = totalSec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function updateHud() {
+    if (startTime) timeStat.textContent = formatTime(Math.floor((Date.now() - startTime) / 1000));
+    attemptsStat.textContent = attempts;
+  }
+
+  function tick(t) {
+    if (!lastFrameT) lastFrameT = t;
+    var dt = clamp((t - lastFrameT) / 16.6667, 0, 3);
+    lastFrameT = t;
+
+    if (running && !solved) {
+      var tiltX = clamp((liveTilt.gamma - baseline.gamma) + keyTilt.x, -TILT_CLAMP, TILT_CLAMP);
+      var tiltY = clamp((liveTilt.beta - baseline.beta) + keyTilt.y, -TILT_CLAMP, TILT_CLAMP);
+
+      ball.vx += tiltX * ACCEL * dt;
+      ball.vy += tiltY * ACCEL * dt;
+      var fr = Math.pow(FRICTION, dt);
+      ball.vx *= fr;
+      ball.vy *= fr;
+      ball.vx = clamp(ball.vx, -MAX_SPEED, MAX_SPEED);
+      ball.vy = clamp(ball.vy, -MAX_SPEED, MAX_SPEED);
+
+      ball.x += ball.vx * dt;
+      ball.y += ball.vy * dt;
+      ball.x = clamp(ball.x, ball.r, W - ball.r);
+      ball.y = clamp(ball.y, ball.r, H - ball.r);
+
+      for (var i = 0; i < walls.length; i++) resolveWallCollision(ball, walls[i]);
+
+      for (var j = 0; j < holes.length; j++) {
+        var h = holes[j];
+        var hd = Math.hypot(ball.x - h.x, ball.y - h.y);
+        if (hd < h.r - 2) { fallInHole(); break; }
+      }
+
+      var gd = Math.hypot(ball.x - goal.x, ball.y - goal.y);
+      if (gd < goal.r - ball.r * 0.4) winGame();
+
+      updateHud();
+
+      if (debugPanel.classList.contains("show")) {
+        debugRaw.textContent = "beta " + liveTilt.beta.toFixed(1) + " / gamma " + liveTilt.gamma.toFixed(1);
+        debugTilt.textContent = "tiltX " + tiltX.toFixed(1) + " / tiltY " + tiltY.toFixed(1);
+      }
+    }
+
+    draw();
+    requestAnimationFrame(tick);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // background
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#081a33");
+    bg.addColorStop(1, "#0b2545");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // faint grid
+    ctx.strokeStyle = "rgba(212,175,55,0.06)";
+    ctx.lineWidth = 1;
+    for (var gx = 0; gx <= W; gx += 30) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (var gy = 0; gy <= H; gy += 30) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    // start marker
+    ctx.strokeStyle = "rgba(247,244,236,0.4)";
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.arc(startPos.x, startPos.y, 14, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // goal
+    var goalGrad = ctx.createRadialGradient(goal.x, goal.y, 2, goal.x, goal.y, goal.r);
+    goalGrad.addColorStop(0, "#38c98a");
+    goalGrad.addColorStop(1, "#1e8e5a");
+    ctx.fillStyle = goalGrad;
+    ctx.beginPath();
+    ctx.arc(goal.x, goal.y, goal.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#eafff3";
+    ctx.font = "bold 11px -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("GOAL", goal.x, goal.y + 4);
+
+    // walls
+    ctx.fillStyle = "#2c4a7c";
+    ctx.strokeStyle = "rgba(212,175,55,0.35)";
+    ctx.lineWidth = 1.5;
+    walls.forEach(function (w) {
+      ctx.fillRect(w.x, w.y, w.w, w.h);
+      ctx.strokeRect(w.x, w.y, w.w, w.h);
+    });
+
+    // holes
+    holes.forEach(function (h) {
+      var hg = ctx.createRadialGradient(h.x, h.y, 1, h.x, h.y, h.r);
+      hg.addColorStop(0, "#3a0d0d");
+      hg.addColorStop(1, "#c23b3b");
+      ctx.fillStyle = hg;
+      ctx.beginPath();
+      ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // ball
+    var bg2 = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 1, ball.x, ball.y, ball.r);
+    bg2.addColorStop(0, "#f7e7b0");
+    bg2.addColorStop(1, "#d4af37");
+    ctx.fillStyle = bg2;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(8,26,51,0.5)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // ---------------------------------------------------------------------
+  // UI wiring
+  // ---------------------------------------------------------------------
+  document.getElementById("startBtn").addEventListener("click", beginCalibration);
+
+  document.getElementById("recalibrateBtn").addEventListener("click", function () {
+    baseline.beta = liveTilt.beta;
+    baseline.gamma = liveTilt.gamma;
+    setNotice("Recalibrated to the current tilt.");
+  });
+
+  document.getElementById("restartBtn").addEventListener("click", function () {
+    resetBall();
+    attempts = 0;
+    solved = false;
+    running = true;
+    startTime = Date.now();
+    winOverlay.classList.remove("show");
+    setNotice("Maze restarted.");
+    updateHud();
+  });
+
+  document.getElementById("playAgainBtn").addEventListener("click", function () {
+    winOverlay.classList.remove("show");
+    resetBall();
+    attempts = 0;
+    solved = false;
+    running = true;
+    startTime = Date.now();
+    setNotice("Go — tilt gently toward the goal.");
+    updateHud();
+  });
+
+  debugToggle.addEventListener("change", function () {
+    debugPanel.classList.toggle("show", debugToggle.checked);
+  });
+
+  resizeCanvas();
+  draw();
+})();
+</script>
+</body>
+</html>
