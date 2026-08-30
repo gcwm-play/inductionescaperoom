@@ -165,10 +165,10 @@ window.CPF_CONTENT = {
     },
     // -----------------------------------------------------------------
     // Gate puzzle shown BEFORE the phrase tiles: pick the real CPF
-    // departments out of a list of 15. Exactly 5 are real; the other 10
+    // departments out of the list below. Exactly 5 are real; the rest
     // are decoys. Player must select the exact set of 5 correct codes.
-    // For this test build, real ones start with "A" — swap in genuine
-    // department names/codes later without touching any other file.
+    // The list can hold any number of decoys — just add/remove entries
+    // with correct:false.
     // -----------------------------------------------------------------
     deptChallenge: {
       eyebrow: "Stage 3A",
@@ -180,21 +180,27 @@ window.CPF_CONTENT = {
       hintMessage: "Hint: exactly 5 of these are genuine CPF departments.",
       hintAfterAttempts: 3,
       departments: [
-        { code: "AMS", correct: true },
-        { code: "ARD", correct: true },
-        { code: "ACS", correct: true },
-        { code: "APD", correct: true },
-        { code: "AGR", correct: true },
-        { code: "BXT", correct: false },
-        { code: "CVR", correct: false },
-        { code: "DKN", correct: false },
-        { code: "ELQ", correct: false },
-        { code: "FYP", correct: false },
-        { code: "GNB", correct: false },
-        { code: "HWS", correct: false },
-        { code: "JQD", correct: false },
-        { code: "KZM", correct: false },
-        { code: "LTV", correct: false },
+        { code: "PCM", correct: true },
+        { code: "BAM", correct: true },
+        { code: "NED", correct: true },
+        { code: "RDD", correct: true },
+        { code: "SLD", correct: true },
+        { code: "MSH", correct: false },
+        { code: "MNC", correct: false },
+        { code: "PLD", correct: false },
+        { code: "PYG", correct: false },
+        { code: "RWG", correct: false },
+        { code: "LGD", correct: false },
+        { code: "RHD", correct: false },
+        { code: "MS1", correct: false },
+        { code: "BCM", correct: false },
+        { code: "FPD", correct: false },
+        { code: "NDD", correct: false },
+        { code: "SND", correct: false },
+        { code: "SLG", correct: false },
+        { code: "PYL", correct: false },
+        { code: "HCC", correct: false },
+        { code: "HDG", correct: false },
       ],
     },
     // The full statement, split into tap-in-order tiles. Order below = correct order.
