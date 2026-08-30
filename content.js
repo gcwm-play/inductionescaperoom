@@ -248,9 +248,12 @@ window.CPF_CONTENT = {
       errorMessage: "That's not right. Try again.",
     },
     challengeB: {
-      label: "Stage 4B",
-      prompt:
-        "Look behind each team's Character Board. Count and add up the total number of GREEN dots you find behind all the Character Boards to get the answer.",
+      label: "Stage 4B - Code Maze",
+      qrImage: "assets/tilt-maze-qr.png",
+      steps: [
+        "Scan the QR code above on a separate phone.",
+        "Approach the facilitators for the device and follow the instructions on the other device.",
+      ],
       inputLabel: "Your answer",
       inputPlaceholder: "",
       answer: "30",

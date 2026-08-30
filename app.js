@@ -895,10 +895,17 @@
       .replace("{projects}", bCorrect ? pd.b : "__");
 
     function challengeCard(idPrefix, challenge, correct, currentVal) {
+      var qrHtml = challenge.qrImage
+        ? '<img class="challenge-qr" src="' + esc(challenge.qrImage) + '" alt="QR code linking to the ' + esc(challenge.label) + ' puzzle" />'
+        : "";
+      var bodyHtml = challenge.steps
+        ? "<ol>" + challenge.steps.map(function (step) { return "<li>" + esc(step) + "</li>"; }).join("") + "</ol>"
+        : "<p>" + esc(challenge.prompt) + "</p>";
       return (
         '<div class="card" id="' + idPrefix + 'Card">' +
         '<span class="eyebrow">' + esc(challenge.label) + "</span>" +
-        "<p>" + esc(challenge.prompt) + "</p>" +
+        qrHtml +
+        bodyHtml +
         '<label class="field-label" for="' + idPrefix + 'Input">' + esc(challenge.inputLabel) + "</label>" +
         '<input type="text" inputmode="decimal" id="' + idPrefix + 'Input" placeholder="' + esc(challenge.inputPlaceholder) + '" value="' + esc(currentVal) + '" ' + (correct ? "disabled" : "") + " />" +
         '<div class="error-text" id="' + idPrefix + 'Error"></div>' +

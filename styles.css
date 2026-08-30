@@ -150,6 +150,25 @@ h3 { font-size: 1.05rem; }
 p { line-height: 1.55; margin: 0 0 10px; color: var(--ink-soft); }
 .card--navy p { color: rgba(247, 244, 236, 0.85); }
 
+.card ol {
+  margin: 0 0 10px;
+  padding-left: 1.3em;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.card ol li { margin-bottom: 4px; }
+
+.challenge-qr {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  margin: 4px auto 14px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.1em;

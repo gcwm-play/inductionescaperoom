@@ -66,6 +66,14 @@
     padding: 18px 20px;
   }
   .card p + p { margin-top: 8px; }
+  .card ol {
+    margin: 8px 0 0;
+    padding-left: 1.2em;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+  .card ol li { margin-bottom: 4px; }
 
   .btn {
     appearance: none;
@@ -284,14 +292,22 @@
   <!-- SETUP STAGE -->
   <div class="stage active" id="stageSetup">
     <div>
-      <span class="eyebrow">CPF Board Induction · Side Puzzle</span>
-      <h1>Tilt Maze</h1>
+      <span class="eyebrow">CPF Board Induction · Stage 4B</span>
+      <h1>Code Maze</h1>
     </div>
     <div class="card">
-      <p><strong>Lay the phone flat</strong> inside the contraption before you start — the maze reads how far it's tilted from that resting position.</p>
-      <p>Tap <strong>Calibrate &amp; Start</strong>, hold the tray level for a second while it zeroes, then tilt gently to roll the ball from the top down into the goal bay. Avoid the holes — falling in resets the ball to the start.</p>
+      <p>A hint about the number of national projects was stored in a ball capsule.</p>
+      <p>Guide the ball to the goal to retrieve the hint.</p>
     </div>
-    <button class="btn btn--primary" id="startBtn">Calibrate &amp; Start</button>
+    <div class="card">
+      <p><strong>Game rules:</strong></p>
+      <ol>
+        <li>Place your phone flat on the device given by the facilitator.</li>
+        <li>Select at least 3 members of your team and hold the sticks on the device to navigate the ball.</li>
+        <li>Click the button below to start — hold the device level for a second while it calibrates.</li>
+      </ol>
+    </div>
+    <button class="btn btn--primary" id="startBtn">Start</button>
     <p class="keys-hint">No phone handy? Use the arrow keys (or WASD) on a keyboard to test the logic first.</p>
   </div>
 
@@ -335,8 +351,8 @@
 <div class="overlay" id="winOverlay">
   <div class="overlay__box">
     <h2>Maze Complete!</h2>
-    <p>The ball made it into the bay. Bring this code back to your team's main device:</p>
-    <div class="reveal-label">Your code</div>
+    <p>The ball reached the goal and released the hint. Bring this number back to your team's main device:</p>
+    <div class="reveal-label">Your hint</div>
     <div class="reveal-code" id="revealCode"></div>
     <div class="overlay__stats">
       <div class="hud__stat">
