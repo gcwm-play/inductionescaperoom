@@ -327,15 +327,19 @@
   /* it's Tap Mode's plain step button, always fully lit when shown.   */
   /* ---------------------------------------------------------------- */
   .obstacle-banner {
-    display: none;
+    /* visibility:hidden (not display:none) so this box always occupies
+       its layout space — the diamond buttons below it must never shift
+       position when an obstacle appears/clears. */
+    visibility: hidden;
     text-align: center;
     padding: 8px 14px;
     border-radius: 12px;
     background: rgba(247, 244, 236, 0.06);
     border: 1.5px solid rgba(247, 244, 236, 0.25);
     flex-shrink: 0;
+    min-height: 60px;
   }
-  .obstacle-banner.show { display: block; }
+  .obstacle-banner.show { visibility: visible; }
   .obstacle-banner__flavor {
     font-size: 0.78rem;
     font-weight: 700;
@@ -858,6 +862,17 @@
   var eventCount = 0;
   var stageEntered = false;
   var usingFallback = false;
+  // sensorListening gates handleMotion() itself — Tap Mode must ignore the
+  // sensor entirely (even a listener left over from a prior Run Mode
+  // playthrough), and returning to the menu must stop a stray devicemotion
+  // event from silently re-entering the play stage. runId is a session
+  // counter: every beginTracking()/retrySensor() call bumps it, and any
+  // async callback (permission promise, the no-data timeout) captures its
+  // own copy and bails if a newer run (or a return to menu) has since
+  // invalidated it — closing the race where a late callback fires after
+  // Main Menu was already tapped and drags the player back into play.
+  var sensorListening = false;
+  var runId = 0;
 
   function setNotice(text) { noticeEl.textContent = text || " "; }
   function setSensorBadge(text, cls) {
@@ -925,6 +940,10 @@
   }
 
   function announce(text) {
+    // Tap Mode is tone-only (see toneAlert/tonePass/toneFail below) — no
+    // speech at all, so this is a hard no-op there regardless of the
+    // sound toggle.
+    if (playMode === "tap") return;
     if (!soundToggle.checked) return;
     if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
       try {
@@ -936,6 +955,58 @@
       } catch (e) {}
     }
     beep();
+  }
+
+  // ---------------------------------------------------------------------
+  // Tap Mode's three short tones — no speech in this mode at all, just a
+  // quick alert when an obstacle appears, a pass chime on the right
+  // button, and a distinct failure tone on a miss/penalty. Each respects
+  // the same sound-toggle mute preference as announce().
+  // ---------------------------------------------------------------------
+  function toneAlert() {
+    if (!soundToggle.checked || !audioCtx) return;
+    try {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 660;
+      gain.gain.value = 0.14;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    } catch (e) {}
+  }
+  function tonePass() {
+    if (!soundToggle.checked || !audioCtx) return;
+    try {
+      var now = audioCtx.currentTime;
+      [660, 990].forEach(function (freq, i) {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.value = 0.15;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + i * 0.09);
+        osc.stop(now + i * 0.09 + 0.12);
+      });
+    } catch (e) {}
+  }
+  function toneFail() {
+    if (!soundToggle.checked || !audioCtx) return;
+    try {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = 180;
+      gain.gain.value = 0.18;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.28);
+    } catch (e) {}
   }
 
   // ---------------------------------------------------------------------
@@ -1132,7 +1203,8 @@
     });
 
     setNotice(" ");
-    announce(currentObstacleType.toUpperCase() + "!");
+    announce(currentObstacleType.toUpperCase() + "!"); // no-ops in Tap Mode
+    if (playMode === "tap") toneAlert();
     clearTimeout(obstacleTimeoutHandle);
     obstacleTimeoutHandle = setTimeout(function () {
       if (obstacleActive) resolveObstacle(false);
@@ -1149,10 +1221,11 @@
     obstacleBanner.classList.remove("show");
     if (success) {
       setNotice("Nice " + currentObstacleType + "!");
+      if (playMode === "tap") tonePass();
     } else {
       startTime -= OBSTACLE_PENALTY_MS;
       setNotice("Missed it — +5s penalty!");
-      beep();
+      if (playMode === "tap") { toneFail(); } else { beep(); }
     }
     currentObstacleType = null;
   }
@@ -1190,6 +1263,8 @@
   function returnToMenu() {
     resetRunState();
     clearInterval(timerHandle);
+    runId++; // invalidate any in-flight permission promise / no-data timeout
+    sensorListening = false;
     stageEntered = false;
     usingFallback = false;
     eventCount = 0;
@@ -1293,6 +1368,7 @@
   }
 
   function handleMotion(e) {
+    if (!sensorListening) return;
     var acc = e.accelerationIncludingGravity;
     var usingRaw = true;
     if (!acc || acc.x === null || acc.x === undefined) {
@@ -1327,8 +1403,11 @@
   function beginTracking() {
     primeAudio();
     applyModeUI();
+    runId++;
+    var myRunId = runId;
 
     if (playMode === "tap") {
+      sensorListening = false; // Tap Mode is pure tapping — ignore the sensor entirely
       stageEntered = true;
       setSensorBadge("Tap Mode — tap RUN for each step", "ok");
       enterPlayStage();
@@ -1344,26 +1423,31 @@
     if (needsPermission) {
       DeviceMotionEvent.requestPermission()
         .then(function (state) {
+          if (runId !== myRunId) return; // menu was reached, or a newer run started, meanwhile
           if (state === "granted") {
+            sensorListening = true;
             window.addEventListener("devicemotion", handleMotion);
-            waitForFirstReading();
+            waitForFirstReading(myRunId);
           } else {
             fallBackToManual("Motion access denied — log steps by hand.", "Motion access denied — tap ↺ to retry");
           }
         })
         .catch(function () {
+          if (runId !== myRunId) return;
           fallBackToManual("Couldn't get motion access — log steps by hand.", "Motion access unavailable — tap ↺ to retry");
         });
     } else if (hasAPI) {
+      sensorListening = true;
       window.addEventListener("devicemotion", handleMotion);
-      waitForFirstReading();
+      waitForFirstReading(myRunId);
     } else {
       fallBackToManual("No motion sensor detected — log steps by hand.", "No DeviceMotionEvent support — manual mode");
     }
   }
 
-  function waitForFirstReading() {
+  function waitForFirstReading(myRunId) {
     setTimeout(function () {
+      if (runId !== myRunId) return;
       if (!stageEntered) {
         fallBackToManual("No sensor data came through — log steps by hand.", "No sensor data — tap ↺ to retry, still listening");
       }
@@ -1388,6 +1472,8 @@
     // this is the "recalibrate" button's dual purpose.
     resetRunState();
     seedNext = true;
+    runId++;
+    var myRunId = runId;
 
     if (usingFallback) {
       setNotice("Retrying motion sensor…");
@@ -1397,7 +1483,9 @@
       if (needsPermission) {
         DeviceMotionEvent.requestPermission()
           .then(function (state) {
+            if (runId !== myRunId) return;
             if (state === "granted") {
+              sensorListening = true;
               window.addEventListener("devicemotion", handleMotion);
               eventCount = 0;
             } else {
@@ -1406,16 +1494,19 @@
             }
           })
           .catch(function () {
+            if (runId !== myRunId) return;
             setNotice("Still couldn't get motion access — keep using the tap button.");
             setSensorBadge("Motion access unavailable — manual mode", "bad");
           });
       } else if (hasAPI) {
         // Listener is likely already attached from the first attempt;
         // re-adding the same function reference is a safe no-op.
+        sensorListening = true;
         window.addEventListener("devicemotion", handleMotion);
         eventCount = 0;
       }
     } else {
+      sensorListening = true;
       setSensorBadge("Sensor active — counting steps", "ok");
       setNotice("Steps reset to zero.");
     }
