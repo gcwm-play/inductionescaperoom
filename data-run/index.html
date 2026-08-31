@@ -544,12 +544,17 @@
   // further steps — a held tilt now claims exactly one step and then
   // goes quiet, instead of free-running for as long as it's held.
   //
-  // STEP_THRESHOLD_HIGH is tuned low enough to catch a soft pocket
-  // footstep while still ignoring the phone sitting still on a table
-  // (~0.05-0.15 idle noise). If it's still missing real steps, or still
-  // over-counting on a steady hold, turn on the debug panel below and
-  // watch how high "filtered" actually gets — that's what
-  // STEP_THRESHOLD_HIGH should sit just under.
+  // STEP_THRESHOLD_HIGH is calibrated from real on-device debug-panel
+  // readings, not just a guess: simply holding a phone upright in your
+  // hand (not resting on anything) has real, substantial hand tremor —
+  // "filtered" reached ~1.0-1.1 just standing still holding it, versus
+  // ~2-4+ while actually walking with it in hand. That idle-hold noise
+  // floor is much higher than a phone resting flat on a table or
+  // muffled in a pocket, so this threshold sits above it with margin.
+  // If it's still under- or over-counting, turn on the debug panel
+  // below, and watch how high "filtered" actually gets (a) just
+  // holding the phone still and (b) during a real step — that pair of
+  // numbers is what should drive this value, not guesswork.
   //
   // Both filters are time-constant based (not a fixed per-sample alpha)
   // because devicemotion fires at very different rates across phones —
@@ -564,7 +569,7 @@
   // ---------------------------------------------------------------------
   var GRAVITY_TAU_MS = 150; // how fast the gravity estimate adapts
   var MAG_TAU_MS = 60;      // light smoothing on the jolt signal itself
-  var STEP_THRESHOLD_HIGH = 0.32;
+  var STEP_THRESHOLD_HIGH = 1.5;
   var STEP_MIN_INTERVAL_MS = 350;
 
   var app = document.getElementById("app");
