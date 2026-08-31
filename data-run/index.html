@@ -419,6 +419,7 @@
         <li>When ready, tap Start below and start walking or running, keeping the phone with you the whole way.</li>
         <li>Getting to the storeroom and back takes about 500 steps, so get moving!</li>
       </ol>
+      <p style="margin-top:10px">Phone in a pocket not registering steps? Just hold it in your hand and give it a firm shake for each step instead.</p>
     </div>
     <button class="btn btn--primary" id="startBtn">Start</button>
     <p class="keys-hint">No phone handy? Press the spacebar on a keyboard to test the step counter first.</p>
@@ -515,14 +516,28 @@
   var STEP_GOAL = 500;
 
   // ---------------------------------------------------------------------
-  // Step-detection tuning. accelerationIncludingGravity is used (rather
+  // Motion-detection tuning. accelerationIncludingGravity is used (rather
   // than the gravity-removed `acceleration` field) because far more
   // phones actually populate it. A low-pass filter tracks the gravity
-  // vector so it can be subtracted back out, leaving just the "bounce"
-  // of each footstep. A step is counted when that bounce crosses above
-  // STEP_THRESHOLD_HIGH, with a refractory window so one footstep can't
-  // be double-counted, and it must dip back below STEP_THRESHOLD_LOW
-  // before the next step can register.
+  // vector so it can be subtracted back out, leaving just the "jolt" of
+  // whatever motion is happening. A step is counted whenever that jolt
+  // crosses above STEP_THRESHOLD_HIGH, gated only by a refractory
+  // window (STEP_MIN_INTERVAL_MS) so one jolt can't be double-counted —
+  // deliberately NOT gated by also requiring the signal to first dip
+  // back below some "quiet" threshold. That hysteresis approach sounds
+  // safer but backfires for muffled pocket motion: the quiet periods
+  // between footsteps often never fully settle, so the detector gets
+  // stuck "waiting to reset" and stops counting real steps. The timer
+  // alone is enough to stop one jolt from being counted twice.
+  //
+  // Deliberately generous: this doesn't try to recognise a walking gait
+  // specifically — any clear jolt counts, whether that's a footstep, a
+  // jog, or someone just shaking the phone by hand. STEP_THRESHOLD_HIGH
+  // is tuned low enough to catch a soft pocket footstep while still
+  // ignoring the phone sitting still on a table (~0.05-0.15 idle noise).
+  // If it's still missing real steps, turn on the debug panel below and
+  // watch how high "filtered" actually gets during a real walk/shake —
+  // that number is what STEP_THRESHOLD_HIGH should sit just under.
   //
   // Both filters are time-constant based (not a fixed per-sample alpha)
   // because devicemotion fires at very different rates across phones —
@@ -532,10 +547,9 @@
   // real-world responsiveness regardless of sample rate.
   // ---------------------------------------------------------------------
   var GRAVITY_TAU_MS = 300; // how fast the gravity estimate adapts
-  var MAG_TAU_MS = 60;      // light smoothing on the bounce signal itself
-  var STEP_THRESHOLD_HIGH = 1.15;
-  var STEP_THRESHOLD_LOW = 0.6;
-  var STEP_MIN_INTERVAL_MS = 280;
+  var MAG_TAU_MS = 45;      // light smoothing on the jolt signal itself
+  var STEP_THRESHOLD_HIGH = 0.28;
+  var STEP_MIN_INTERVAL_MS = 220;
 
   var app = document.getElementById("app");
   var stageSetup = document.getElementById("stageSetup");
@@ -563,7 +577,6 @@
   var gravity = { x: 0, y: 0, z: 0 };
   var seedNext = true;
   var filteredMag = 0;
-  var stepPhase = "below"; // "below" | "above" — hysteresis state
   var lastStepTime = 0;
   var lastEventTime = 0;
   var eventCount = 0;
@@ -626,7 +639,6 @@
     if (seedNext) {
       gravity.x = acc.x; gravity.y = acc.y; gravity.z = acc.z;
       filteredMag = 0;
-      stepPhase = "below";
       seedNext = false;
       return;
     }
@@ -646,17 +658,21 @@
     var magAlpha = Math.exp(-dt / MAG_TAU_MS);
     filteredMag = magAlpha * filteredMag + (1 - magAlpha) * mag;
 
-    if (stepPhase === "below" && filteredMag > STEP_THRESHOLD_HIGH && (now - lastStepTime) > STEP_MIN_INTERVAL_MS) {
-      stepPhase = "above";
+    // Pure threshold-crossing + a time-based refractory window — no
+    // "must dip back below a low threshold first" requirement. That
+    // hysteresis approach sounds safer but actually backfires here: a
+    // muffled pocket footstep, or ambient jostling, often never fully
+    // quiets back down between jolts, so the detector gets stuck
+    // "waiting to reset" and stops counting real steps. The refractory
+    // timer alone already prevents one jolt from being counted twice.
+    if (filteredMag > STEP_THRESHOLD_HIGH && (now - lastStepTime) > STEP_MIN_INTERVAL_MS) {
       lastStepTime = now;
       registerStep();
-    } else if (stepPhase === "above" && filteredMag < STEP_THRESHOLD_LOW) {
-      stepPhase = "below";
     }
 
     if (debugPanel.classList.contains("show")) {
       debugRaw.textContent = "mag " + mag.toFixed(2) + " / filtered " + filteredMag.toFixed(2);
-      debugState.textContent = "state " + stepPhase + " / events " + eventCount;
+      debugState.textContent = "threshold " + STEP_THRESHOLD_HIGH + " / events " + eventCount;
     }
   }
 
@@ -747,7 +763,6 @@
     won = false;
     startTime = Date.now();
     seedNext = true;
-    stepPhase = "below";
     winOverlay.classList.remove("show");
     updateRoute();
     timeStat.textContent = "0:00";
