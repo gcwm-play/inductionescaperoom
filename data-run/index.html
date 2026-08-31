@@ -421,6 +421,15 @@
       </ol>
       <p style="margin-top:10px">Phone in a pocket not registering steps? Just hold it in your hand and give it a firm shake for each step instead.</p>
     </div>
+    <div class="card" id="bestTimesCard" style="display:none">
+      <p><strong>Fastest times on this device</strong></p>
+      <ol id="bestTimesList"></ol>
+      <button class="step-manual-link" id="clearTimesBtn" style="margin-top:2px">Clear saved times</button>
+    </div>
+    <div class="debug-toggle">
+      <input type="checkbox" id="soundToggle" checked />
+      <label for="soundToggle">Announce step milestones out loud</label>
+    </div>
     <button class="btn btn--primary" id="startBtn">Start</button>
     <p class="keys-hint">No phone handy? Press the spacebar on a keyboard to test the step counter first.</p>
   </div>
@@ -498,6 +507,7 @@
         <span class="hud__stat-label">Steps</span>
       </div>
     </div>
+    <p class="notice" id="rankNote">&nbsp;</p>
     <button class="btn btn--primary" id="playAgainBtn">Play Again</button>
   </div>
 </div>
@@ -587,6 +597,10 @@
   var debugPanel = document.getElementById("debugPanel");
   var debugRaw = document.getElementById("debugRaw");
   var debugState = document.getElementById("debugState");
+  var soundToggle = document.getElementById("soundToggle");
+  var bestTimesCard = document.getElementById("bestTimesCard");
+  var bestTimesList = document.getElementById("bestTimesList");
+  var rankNote = document.getElementById("rankNote");
 
   document.getElementById("goalStat").textContent = STEP_GOAL;
 
@@ -623,11 +637,124 @@
     stepCountEl.textContent = stepCount;
   }
 
+  // ---------------------------------------------------------------------
+  // Audio milestones — spoken via the Web Speech API (same mechanism as
+  // the main app's "read aloud" button), with a plain beep fallback for
+  // browsers/devices where speech synthesis is unavailable or blocked.
+  // Both are primed from beginTracking() (a real tap on Start) since
+  // mobile browsers generally require a user gesture before they'll let
+  // audio play at all.
+  // ---------------------------------------------------------------------
+  var SOUND_PREF_KEY = "data_run_sound_v1";
+  (function initSoundPref() {
+    try {
+      var saved = localStorage.getItem(SOUND_PREF_KEY);
+      if (saved !== null) soundToggle.checked = saved === "1";
+    } catch (e) {}
+  })();
+  soundToggle.addEventListener("change", function () {
+    try { localStorage.setItem(SOUND_PREF_KEY, soundToggle.checked ? "1" : "0"); } catch (e) {}
+  });
+
+  var audioCtx = null;
+  function primeAudio() {
+    try {
+      var Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtx && Ctor) audioCtx = new Ctor();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    } catch (e) {}
+    try {
+      if (window.speechSynthesis) window.speechSynthesis.getVoices();
+    } catch (e) {}
+  }
+
+  function beep() {
+    if (!audioCtx) return;
+    try {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.value = 0.15;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.18);
+    } catch (e) {}
+  }
+
+  function announce(text) {
+    if (!soundToggle.checked) return;
+    if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
+      try {
+        var utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1.05;
+        utter.onerror = beep;
+        window.speechSynthesis.speak(utter);
+        return;
+      } catch (e) {}
+    }
+    beep();
+  }
+
+  // ---------------------------------------------------------------------
+  // Fastest times — kept locally on this device only (no shared/live
+  // leaderboard across teams' own phones; that would need a backend
+  // this static page doesn't have). Swap loadBestTimes/saveBestTime for
+  // calls to a real backend later without touching anything else.
+  // ---------------------------------------------------------------------
+  var BEST_TIMES_KEY = "data_run_best_times_v1";
+  function loadBestTimes() {
+    try {
+      var raw = localStorage.getItem(BEST_TIMES_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveBestTime(elapsedSec) {
+    var times = loadBestTimes();
+    times.push({ elapsedSec: elapsedSec, dateISO: new Date().toISOString() });
+    times.sort(function (a, b) { return a.elapsedSec - b.elapsedSec; });
+    times = times.slice(0, 5);
+    try { localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(times)); } catch (e) {}
+    return times;
+  }
+  function relativeDate(iso) {
+    var mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + "m ago";
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + "h ago";
+    return Math.floor(hours / 24) + "d ago";
+  }
+  function renderBestTimes() {
+    var times = loadBestTimes();
+    if (!times.length) {
+      bestTimesCard.style.display = "none";
+      return;
+    }
+    bestTimesCard.style.display = "";
+    bestTimesList.innerHTML = times
+      .map(function (t) {
+        return "<li>" + formatTime(t.elapsedSec) + ' <span style="opacity:.65;font-size:0.85em">— ' + relativeDate(t.dateISO) + "</span></li>";
+      })
+      .join("");
+  }
+  renderBestTimes();
+  document.getElementById("clearTimesBtn").addEventListener("click", function () {
+    try { localStorage.removeItem(BEST_TIMES_KEY); } catch (e) {}
+    renderBestTimes();
+  });
+
   function registerStep() {
     if (won) return;
     stepCount++;
     updateRoute();
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+    if (stepCount % 50 === 0 && stepCount < STEP_GOAL) {
+      announce(stepCount + " steps");
+    }
     if (stepCount >= STEP_GOAL) {
       win();
     }
@@ -647,6 +774,15 @@
     revealCodeEl.innerHTML = REVEAL_CODE.split("").map(function (d) {
       return '<div class="reveal-code__digit">' + d + "</div>";
     }).join("");
+
+    var updatedTimes = saveBestTime(elapsed);
+    var rank = -1;
+    for (var i = 0; i < updatedTimes.length; i++) {
+      if (updatedTimes[i].elapsedSec === elapsed) { rank = i + 1; break; }
+    }
+    rankNote.textContent = rank === 1 ? "New fastest time on this device!" : rank > 1 ? "Ranked #" + rank + " fastest on this device." : " ";
+
+    announce("Data retrieved!");
     winOverlay.classList.add("show");
   }
 
@@ -726,6 +862,7 @@
   }
 
   function beginTracking() {
+    primeAudio();
     setNotice("Requesting motion access…");
     setSensorBadge("Waiting for first step…");
     var hasAPI = typeof window.DeviceMotionEvent !== "undefined";
