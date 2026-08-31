@@ -19,6 +19,9 @@
     --ink-soft: rgba(247, 244, 236, 0.72);
     --red: #c23b3b;
     --green: #1e8e5a;
+    --duck-blue: #4a90d9;
+    --dodge-green: #4fae6f;
+    --warn: #ff5c5c;
     --radius: 16px;
   }
   * { box-sizing: border-box; }
@@ -197,12 +200,18 @@
   /* steps come in, with a turn-around marker at the halfway point.    */
   /* ---------------------------------------------------------------- */
   .route-wrap {
-    flex: 1;
-    min-height: 0;
+    /* Deliberately NOT flex:1/min-height:0 — that combination lets a
+       flex item shrink below its own content's natural height, and
+       since it has no overflow of its own, the excess content doesn't
+       scroll, it visually spills into whatever sibling comes next
+       (this bit us once already: the diamond buttons overlapping the
+       manual-log button on a short viewport). Natural height here
+       means the worst case is the whole .stage scrolling (it already
+       has overflow-y:auto), which is a real fallback instead of a
+       silent visual collision. */
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
     gap: 14px;
     padding-top: 2px;
     position: relative;
@@ -323,24 +332,72 @@
     color: var(--paper);
     box-shadow: 0 3px 10px rgba(194, 59, 59, 0.4);
   }
-  .action-btn--jump {
-    background: rgba(212, 175, 55, 0.14);
-    border: 2px solid rgba(212, 175, 55, 0.35);
-    color: rgba(226, 196, 101, 0.55);
-    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  /* ---------------------------------------------------------------- */
+  /* Obstacle banner + 3-button diamond (JUMP / DUCK / DODGE). Only    */
+  /* one of the three is correct per event; all three look identical  */
+  /* (dim -> full-opacity) when armed, so there's no color/glow that   */
+  /* gives away which one to press — the banner text is the only tell,*/
+  /* and its own color is deliberately not any button's color either. */
+  /* ---------------------------------------------------------------- */
+  .obstacle-banner {
+    display: none;
+    text-align: center;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: rgba(255, 92, 92, 0.1);
+    border: 1.5px solid rgba(255, 92, 92, 0.45);
+    flex-shrink: 0;
   }
-  .action-btn--jump:disabled { cursor: default; }
-  .action-btn--jump.is-active {
-    background: var(--gold-500);
-    color: var(--navy-950);
-    border-color: var(--gold-300);
-    box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.22), 0 3px 12px rgba(0, 0, 0, 0.4);
-    animation: jumpPulse 0.5s ease-in-out infinite;
+  .obstacle-banner.show { display: block; }
+  .obstacle-banner__flavor {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--warn);
+    margin-bottom: 2px;
   }
-  @keyframes jumpPulse {
+  .obstacle-banner__action {
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: var(--warn);
+  }
+
+  .action-diamond {
+    display: grid;
+    grid-template-columns: 62px 62px 62px;
+    grid-template-rows: 62px 62px 62px;
+    grid-template-areas:
+      ".    jump  ."
+      ".    .     dodge"
+      ".    duck  .";
+    gap: 8px;
+    justify-content: center;
+    margin: 0 auto;
+    flex-shrink: 0;
+  }
+  .diamond-btn {
+    border-radius: 50%;
+    border: none;
+    font-weight: 800;
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    font-family: inherit;
+    opacity: 0.32;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .diamond-btn:disabled { cursor: default; }
+  .diamond-btn.is-armed {
+    opacity: 1;
+    animation: diamondPulse 0.5s ease-in-out infinite;
+  }
+  @keyframes diamondPulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.08); }
+    50% { transform: scale(1.07); }
   }
+  #jumpBtn { grid-area: jump; background: var(--gold-500); color: var(--navy-950); }
+  #dodgeBtn { grid-area: dodge; background: var(--dodge-green); color: var(--navy-950); }
+  #duckBtn { grid-area: duck; background: var(--duck-blue); color: var(--paper); }
 
   .step-fallback {
     width: 100%;
@@ -534,7 +591,7 @@
   @media (prefers-reduced-motion: reduce) {
     .btn, .route__fill, .runner { transition: none; }
     .runner__leg-l, .runner__leg-r, .runner__arm-l, .runner__arm-r,
-    .action-btn--jump.is-active { animation: none; }
+    .diamond-btn.is-armed { animation: none; }
   }
 </style>
 </head>
@@ -558,7 +615,7 @@
         <li>Getting to the storeroom and back takes about 500 steps, so get moving!</li>
       </ol>
       <p style="margin-top:10px">Phone in a pocket not registering steps? Just hold it in your hand and give it a firm shake for each step instead.</p>
-      <p style="margin-top:10px">Watch for obstacles mid-run — tap JUMP when prompted, or it's +5 seconds on the clock.</p>
+      <p style="margin-top:10px">Watch for obstacles mid-run — read the warning and tap the matching button (JUMP, DUCK, or DODGE) in time, or it's +5 seconds on the clock.</p>
     </div>
     <div class="mode-select">
       <button type="button" class="mode-option is-selected" id="modeRunBtn" data-mode="run">
@@ -567,7 +624,7 @@
       </button>
       <button type="button" class="mode-option" id="modeTapBtn" data-mode="tap">
         <span class="mode-option__title">Tap Mode</span>
-        <span class="mode-option__desc">No sensor — tap RUN for every step and JUMP for every obstacle. Harder work!</span>
+        <span class="mode-option__desc">No sensor — tap RUN for every step and pick the right button for every obstacle. Harder work!</span>
       </button>
     </div>
     <div class="card" id="bestTimesCard" style="display:none">
@@ -630,7 +687,17 @@
 
       <div class="action-row" id="actionRow">
         <button class="action-btn action-btn--run" id="runBtn" style="display:none">RUN</button>
-        <button class="action-btn action-btn--jump" id="jumpBtn" disabled>JUMP</button>
+      </div>
+
+      <div class="obstacle-banner" id="obstacleBanner">
+        <div class="obstacle-banner__flavor" id="obstacleFlavor">&nbsp;</div>
+        <div class="obstacle-banner__action" id="obstacleAction">&nbsp;</div>
+      </div>
+
+      <div class="action-diamond" id="actionDiamond">
+        <button class="diamond-btn" id="jumpBtn" disabled>JUMP</button>
+        <button class="diamond-btn" id="duckBtn" disabled>DUCK</button>
+        <button class="diamond-btn" id="dodgeBtn" disabled>DODGE</button>
       </div>
 
       <div class="step-fallback" id="stepFallback" style="display:none">
@@ -771,6 +838,11 @@
   var recalBtn = document.getElementById("recalBtn");
   var runBtn = document.getElementById("runBtn");
   var jumpBtn = document.getElementById("jumpBtn");
+  var duckBtn = document.getElementById("duckBtn");
+  var dodgeBtn = document.getElementById("dodgeBtn");
+  var obstacleBanner = document.getElementById("obstacleBanner");
+  var obstacleFlavorEl = document.getElementById("obstacleFlavor");
+  var obstacleActionEl = document.getElementById("obstacleAction");
   var manualHint = document.getElementById("manualHint");
   var manualLink = document.getElementById("manualLink");
   var modeRunBtn = document.getElementById("modeRunBtn");
@@ -988,13 +1060,22 @@
   }
 
   // ---------------------------------------------------------------------
-  // Obstacles — 15 reaction-time checks spread across the run. Each one
-  // gives OBSTACLE_REACT_MS to tap JUMP; missing the window costs
-  // OBSTACLE_PENALTY_MS, applied by pushing startTime backward so the
-  // live timer (and the final certificate time) both reflect it
-  // immediately, with no separate "penalty seconds" bookkeeping needed.
-  // Thresholds are step counts, spaced with a little jitter so they
-  // don't land on a predictable rhythm, and re-rolled on every restart.
+  // Obstacles — 15 reaction-and-recognition checks spread across the
+  // run. Each one names a specific hazard and requires the ONE matching
+  // button (JUMP / DUCK / DODGE) within OBSTACLE_REACT_MS; tapping a
+  // wrong button fails it immediately, same as letting it time out.
+  // Missing costs OBSTACLE_PENALTY_MS, applied by pushing startTime
+  // backward so the live timer (and the final certificate time) both
+  // reflect it immediately, with no separate "penalty seconds"
+  // bookkeeping needed. Thresholds are step counts, spaced with a
+  // little jitter so they don't land on a predictable rhythm, and
+  // re-rolled on every restart.
+  //
+  // All three buttons look identical (dim -> full opacity) when armed
+  // — none of them glows differently to hint at the right answer, and
+  // the banner text's color (--warn) deliberately isn't any button's
+  // own color either. The only way to tell them apart is reading the
+  // word, which is the point: this is what makes guessing unreliable.
   // ---------------------------------------------------------------------
   var OBSTACLE_COUNT = 15;
   var OBSTACLE_REACT_MS = 2000;
@@ -1003,6 +1084,15 @@
   var nextObstacleIdx = 0;
   var obstacleActive = false;
   var obstacleTimeoutHandle = null;
+  var currentObstacleType = null;
+  var diamondButtons = [jumpBtn, duckBtn, dodgeBtn];
+
+  var OBSTACLE_FLAVORS = {
+    jump: ["Bubble tea spill", "Stray extension cable", "Someone's forgotten lunch box", "A very confident cat"],
+    duck: ["Open cabinet door", "Low-hanging banner", "A flying paper airplane", "Overhead pipe"],
+    dodge: ["Colleague playing with his phone", "A rogue office chair", "Someone reversing a trolley", "The coffee run crowd"],
+  };
+  var OBSTACLE_TYPES = ["jump", "duck", "dodge"];
 
   function scheduleObstacles() {
     obstacleThresholds = [];
@@ -1021,10 +1111,20 @@
     if (stepCount < obstacleThresholds[nextObstacleIdx]) return;
     nextObstacleIdx++;
     obstacleActive = true;
-    jumpBtn.disabled = false;
-    jumpBtn.classList.add("is-active");
-    setNotice("Obstacle ahead — tap JUMP!");
-    announce("Jump!");
+
+    currentObstacleType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+    var pool = OBSTACLE_FLAVORS[currentObstacleType];
+    obstacleFlavorEl.textContent = "! " + pool[Math.floor(Math.random() * pool.length)] + " !";
+    obstacleActionEl.textContent = currentObstacleType.toUpperCase() + "!";
+    obstacleBanner.classList.add("show");
+
+    diamondButtons.forEach(function (btn) {
+      btn.disabled = false;
+      btn.classList.add("is-armed");
+    });
+
+    setNotice(" ");
+    announce(currentObstacleType.toUpperCase() + "!");
     clearTimeout(obstacleTimeoutHandle);
     obstacleTimeoutHandle = setTimeout(function () {
       if (obstacleActive) resolveObstacle(false);
@@ -1033,22 +1133,29 @@
 
   function resolveObstacle(success) {
     obstacleActive = false;
-    jumpBtn.disabled = true;
-    jumpBtn.classList.remove("is-active");
     clearTimeout(obstacleTimeoutHandle);
+    diamondButtons.forEach(function (btn) {
+      btn.disabled = true;
+      btn.classList.remove("is-armed");
+    });
+    obstacleBanner.classList.remove("show");
     if (success) {
-      setNotice("Nice dodge!");
+      setNotice("Nice " + currentObstacleType + "!");
     } else {
       startTime -= OBSTACLE_PENALTY_MS;
       setNotice("Missed it — +5s penalty!");
       beep();
     }
+    currentObstacleType = null;
   }
 
-  jumpBtn.addEventListener("click", function () {
+  function handleDiamondPress(type) {
     if (!obstacleActive) return;
-    resolveObstacle(true);
-  });
+    resolveObstacle(type === currentObstacleType);
+  }
+  jumpBtn.addEventListener("click", function () { handleDiamondPress("jump"); });
+  duckBtn.addEventListener("click", function () { handleDiamondPress("duck"); });
+  dodgeBtn.addEventListener("click", function () { handleDiamondPress("dodge"); });
 
   function resetRunState() {
     stepCount = 0;
@@ -1057,8 +1164,8 @@
     scheduleObstacles();
     obstacleActive = false;
     clearTimeout(obstacleTimeoutHandle);
-    jumpBtn.disabled = true;
-    jumpBtn.classList.remove("is-active");
+    diamondButtons.forEach(function (btn) { btn.disabled = true; btn.classList.remove("is-armed"); });
+    obstacleBanner.classList.remove("show");
     winOverlay.classList.remove("show");
     updateRoute();
     timeStat.textContent = "0:00";
@@ -1089,8 +1196,8 @@
     won = true;
     obstacleActive = false;
     clearTimeout(obstacleTimeoutHandle);
-    jumpBtn.disabled = true;
-    jumpBtn.classList.remove("is-active");
+    diamondButtons.forEach(function (btn) { btn.disabled = true; btn.classList.remove("is-armed"); });
+    obstacleBanner.classList.remove("show");
     var elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
     var priorTimes = loadBestTimes();
