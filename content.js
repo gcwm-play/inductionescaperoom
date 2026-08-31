@@ -199,7 +199,7 @@ window.CPF_CONTENT = {
         { code: "SND", correct: false },
         { code: "SLG", correct: false },
         { code: "HPP", correct: false },
-        { code: "CDD", correct: false },
+        { code: "HDD", correct: false },
         { code: "HDG", correct: false },
       ],
     },
