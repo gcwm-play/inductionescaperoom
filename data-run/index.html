@@ -757,10 +757,10 @@
 
   // Run Mode has no obstacles/reaction penalties to slow it down, while
   // Tap Mode's obstacle misses cost real time — so a real footstep in Run
-  // Mode counts as 1.15 toward the goal (15% "accelerated") to keep the
+  // Mode counts as 1.2 toward the goal (20% "accelerated") to keep the
   // two modes in the same ballpark for total completion time. Tap Mode's
   // RUN taps are unaffected (multiplier 1).
-  var RUN_STEP_MULTIPLIER = 1.15;
+  var RUN_STEP_MULTIPLIER = 1.2;
   var stepMultiplier = 1;
 
   // ---------------------------------------------------------------------
@@ -897,7 +897,7 @@
     var pct = Math.min(100, (stepCount / STEP_GOAL) * 100);
     routeFill.style.width = pct + "%";
     routeMarker.style.left = pct + "%";
-    // stepCount can be fractional (Run Mode's 1.15x multiplier) — round it
+    // stepCount can be fractional (Run Mode's 1.2x multiplier) — round it
     // for a clean-looking display without affecting the underlying count.
     stepCountEl.textContent = Math.min(STEP_GOAL, Math.round(stepCount));
   }
@@ -1294,7 +1294,7 @@
     if (won) return;
     // Track 50-step milestones by comparing which 50-bucket stepCount was
     // in before vs. after — a plain "% 50 === 0" check doesn't reliably
-    // fire once stepCount can be fractional (Run Mode's 1.15x multiplier).
+    // fire once stepCount can be fractional (Run Mode's 1.2x multiplier).
     var prevMilestone = Math.floor(stepCount / 50);
     stepCount += stepMultiplier;
     updateRoute();
