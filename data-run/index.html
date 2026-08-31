@@ -521,35 +521,51 @@
   // phones actually populate it. A low-pass filter tracks the gravity
   // vector so it can be subtracted back out, leaving just the "jolt" of
   // whatever motion is happening. A step is counted whenever that jolt
-  // crosses above STEP_THRESHOLD_HIGH, gated only by a refractory
-  // window (STEP_MIN_INTERVAL_MS) so one jolt can't be double-counted —
-  // deliberately NOT gated by also requiring the signal to first dip
-  // back below some "quiet" threshold. That hysteresis approach sounds
-  // safer but backfires for muffled pocket motion: the quiet periods
-  // between footsteps often never fully settle, so the detector gets
-  // stuck "waiting to reset" and stops counting real steps. The timer
-  // alone is enough to stop one jolt from being counted twice.
+  // crosses above STEP_THRESHOLD_HIGH, gated by a refractory window
+  // (STEP_MIN_INTERVAL_MS) so one jolt can't be double-counted.
   //
-  // Deliberately generous: this doesn't try to recognise a walking gait
-  // specifically — any clear jolt counts, whether that's a footstep, a
-  // jog, or someone just shaking the phone by hand. STEP_THRESHOLD_HIGH
-  // is tuned low enough to catch a soft pocket footstep while still
-  // ignoring the phone sitting still on a table (~0.05-0.15 idle noise).
-  // If it's still missing real steps, turn on the debug panel below and
-  // watch how high "filtered" actually gets during a real walk/shake —
-  // that number is what STEP_THRESHOLD_HIGH should sit just under.
+  // The tricky part isn't the crossing — it's what happens right after.
+  // A real jolt (footstep, shake) is over in well under a second, but
+  // the gravity filter takes a few hundred ms to "catch up" to it, and
+  // while it's catching up the leftover residual keeps reading as more
+  // motion than there really is. Two earlier approaches both broke on
+  // this: waiting for the signal to return below some low threshold
+  // got permanently stuck open on real motion that never fully
+  // quieted down (undercounting real steps); requiring a fall relative
+  // to its own peak still let a slow decay tail re-arm and re-trigger
+  // on nothing but leftover residual — which is exactly what made
+  // holding the phone still but tilted read as continuous steps.
+  //
+  // The fix: the instant a step is counted, re-anchor the gravity
+  // estimate straight to the current reading and zero the jolt signal,
+  // rather than waiting for the slow filter to decay back down on its
+  // own. "Right after this jolt" becomes the new resting baseline
+  // immediately, so there's no lingering tail left to misread as
+  // further steps — a held tilt now claims exactly one step and then
+  // goes quiet, instead of free-running for as long as it's held.
+  //
+  // STEP_THRESHOLD_HIGH is tuned low enough to catch a soft pocket
+  // footstep while still ignoring the phone sitting still on a table
+  // (~0.05-0.15 idle noise). If it's still missing real steps, or still
+  // over-counting on a steady hold, turn on the debug panel below and
+  // watch how high "filtered" actually gets — that's what
+  // STEP_THRESHOLD_HIGH should sit just under.
   //
   // Both filters are time-constant based (not a fixed per-sample alpha)
   // because devicemotion fires at very different rates across phones —
   // anywhere from ~15Hz to ~60Hz. A fixed per-sample alpha tuned for one
   // rate quietly breaks on another (too laggy or too twitchy); computing
   // the decay from the actual gap between readings keeps the same
-  // real-world responsiveness regardless of sample rate.
+  // real-world responsiveness regardless of sample rate. GRAVITY_TAU_MS
+  // in particular is deliberately fast (not the ~300ms you'd expect for
+  // "gravity") — that's what lets it track a real reorientation (a slow
+  // sway, not just an instant tilt) closely enough that its residual
+  // never builds up far enough to falsely cross the threshold at all.
   // ---------------------------------------------------------------------
-  var GRAVITY_TAU_MS = 300; // how fast the gravity estimate adapts
-  var MAG_TAU_MS = 45;      // light smoothing on the jolt signal itself
-  var STEP_THRESHOLD_HIGH = 0.28;
-  var STEP_MIN_INTERVAL_MS = 220;
+  var GRAVITY_TAU_MS = 150; // how fast the gravity estimate adapts
+  var MAG_TAU_MS = 60;      // light smoothing on the jolt signal itself
+  var STEP_THRESHOLD_HIGH = 0.32;
+  var STEP_MIN_INTERVAL_MS = 350;
 
   var app = document.getElementById("app");
   var stageSetup = document.getElementById("stageSetup");
@@ -658,16 +674,12 @@
     var magAlpha = Math.exp(-dt / MAG_TAU_MS);
     filteredMag = magAlpha * filteredMag + (1 - magAlpha) * mag;
 
-    // Pure threshold-crossing + a time-based refractory window — no
-    // "must dip back below a low threshold first" requirement. That
-    // hysteresis approach sounds safer but actually backfires here: a
-    // muffled pocket footstep, or ambient jostling, often never fully
-    // quiets back down between jolts, so the detector gets stuck
-    // "waiting to reset" and stops counting real steps. The refractory
-    // timer alone already prevents one jolt from being counted twice.
     if (filteredMag > STEP_THRESHOLD_HIGH && (now - lastStepTime) > STEP_MIN_INTERVAL_MS) {
       lastStepTime = now;
       registerStep();
+      // Re-anchor immediately — see the tuning comment above for why.
+      gravity.x = acc.x; gravity.y = acc.y; gravity.z = acc.z;
+      filteredMag = 0;
     }
 
     if (debugPanel.classList.contains("show")) {
