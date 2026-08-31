@@ -114,6 +114,12 @@
     margin: 10px 0 -2px;
   }
 
+  .bottom-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .bottom-actions .btn { width: auto; flex: 1; }
+
   .stage {
     flex: 1;
     min-height: 0;
@@ -309,43 +315,24 @@
   @keyframes armSwingL { 0%, 100% { transform: rotate(-22deg); } 50% { transform: rotate(22deg); } }
   @keyframes armSwingR { 0%, 100% { transform: rotate(22deg); } 50% { transform: rotate(-22deg); } }
 
-  .action-row {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .action-btn {
-    width: 78px;
-    height: 78px;
-    border-radius: 50%;
-    border: none;
-    font-weight: 800;
-    font-size: 0.88rem;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .action-btn:active { transform: scale(0.95); }
-  .action-btn--run {
-    background: var(--red);
-    color: var(--paper);
-    box-shadow: 0 3px 10px rgba(194, 59, 59, 0.4);
-  }
   /* ---------------------------------------------------------------- */
-  /* Obstacle banner + 3-button diamond (JUMP / DUCK / DODGE). Only    */
-  /* one of the three is correct per event; all three look identical  */
-  /* (dim -> full-opacity) when armed, so there's no color/glow that   */
-  /* gives away which one to press — the banner text is the only tell,*/
-  /* and its own color is deliberately not any button's color either. */
+  /* Obstacle banner + 4-button gamepad diamond. JUMP/DUCK/DODGE are   */
+  /* the obstacle-response buttons — only one is correct per event,    */
+  /* and all three look identical (dim -> full-opacity) when armed, so */
+  /* there's no glow that gives away which one to press. The banner's  */
+  /* text color is set per-event from JS to one of the OTHER two       */
+  /* buttons' colors (never the correct button's own) — a deliberate   */
+  /* decoy, so color-matching the text to a button is actively wrong   */
+  /* as often as it's right. RUN (west) is unrelated to any of that:   */
+  /* it's Tap Mode's plain step button, always fully lit when shown.   */
   /* ---------------------------------------------------------------- */
   .obstacle-banner {
     display: none;
     text-align: center;
     padding: 8px 14px;
     border-radius: 12px;
-    background: rgba(255, 92, 92, 0.1);
-    border: 1.5px solid rgba(255, 92, 92, 0.45);
+    background: rgba(247, 244, 236, 0.06);
+    border: 1.5px solid rgba(247, 244, 236, 0.25);
     flex-shrink: 0;
   }
   .obstacle-banner.show { display: block; }
@@ -368,7 +355,7 @@
     grid-template-rows: 62px 62px 62px;
     grid-template-areas:
       ".    jump  ."
-      ".    .     dodge"
+      "run  .     dodge"
       ".    duck  .";
     gap: 8px;
     justify-content: center;
@@ -387,6 +374,7 @@
     transition: opacity 0.15s ease, transform 0.15s ease;
   }
   .diamond-btn:disabled { cursor: default; }
+  .diamond-btn:active { transform: scale(0.93); }
   .diamond-btn.is-armed {
     opacity: 1;
     animation: diamondPulse 0.5s ease-in-out infinite;
@@ -398,6 +386,12 @@
   #jumpBtn { grid-area: jump; background: var(--gold-500); color: var(--navy-950); }
   #dodgeBtn { grid-area: dodge; background: var(--dodge-green); color: var(--navy-950); }
   #duckBtn { grid-area: duck; background: var(--duck-blue); color: var(--paper); }
+  #runBtn {
+    grid-area: run;
+    background: var(--red);
+    color: var(--paper);
+    opacity: 1; /* always fully lit when shown — it's not an obstacle-guess button */
+  }
 
   .step-fallback {
     width: 100%;
@@ -685,10 +679,6 @@
         <div class="route__turnaround-label">turn around here</div>
       </div>
 
-      <div class="action-row" id="actionRow">
-        <button class="action-btn action-btn--run" id="runBtn" style="display:none">RUN</button>
-      </div>
-
       <div class="obstacle-banner" id="obstacleBanner">
         <div class="obstacle-banner__flavor" id="obstacleFlavor">&nbsp;</div>
         <div class="obstacle-banner__action" id="obstacleAction">&nbsp;</div>
@@ -696,8 +686,9 @@
 
       <div class="action-diamond" id="actionDiamond">
         <button class="diamond-btn" id="jumpBtn" disabled>JUMP</button>
-        <button class="diamond-btn" id="duckBtn" disabled>DUCK</button>
+        <button class="diamond-btn" id="runBtn" style="display:none">RUN</button>
         <button class="diamond-btn" id="dodgeBtn" disabled>DODGE</button>
+        <button class="diamond-btn" id="duckBtn" disabled>DUCK</button>
       </div>
 
       <div class="step-fallback" id="stepFallback" style="display:none">
@@ -712,7 +703,10 @@
 
     <div class="utility-divider"></div>
 
-    <button class="btn btn--ghost btn--small" id="restartBtn">Reset Steps</button>
+    <div class="bottom-actions">
+      <button class="btn btn--ghost btn--small" id="restartBtn">Reset Steps</button>
+      <button class="btn btn--ghost btn--small" id="mainMenuBtn">Main Menu</button>
+    </div>
 
     <div class="debug-toggle">
       <input type="checkbox" id="debugToggle" />
@@ -735,9 +729,9 @@
 
     <div class="cert-divider"></div>
 
-    <div class="reveal-label">Unlock word</div>
+    <div class="reveal-label">Unlock code</div>
     <div class="reveal-code" id="revealCode"></div>
-    <p>Bring this word back to your team's main device.</p>
+    <p>Bring this code back to your team's main device.</p>
 
     <p class="replay-pitch">Think you can run and retrieve the data faster? You can try again! The team with the fastest "runner" gets an extra $1 for their character!</p>
 
@@ -750,12 +744,12 @@
   "use strict";
 
   // ---------------------------------------------------------------------
-  // The word shown on the win screen — the answer this puzzle feeds
-  // back into the main escape room app. reveal-code renders it letter
-  // by letter and wraps onto a second row on its own for longer words,
-  // so this doesn't need to stay numeric or a fixed length.
+  // The code shown on the win screen — the answer this puzzle feeds
+  // back into the main escape room app. reveal-code renders it
+  // character by character and wraps onto a second row on its own if
+  // it's long, so this can be a word or a number of any length.
   // ---------------------------------------------------------------------
-  var REVEAL_CODE = "COMMITTED";
+  var REVEAL_CODE = "1955";
 
   var STEP_GOAL = 500;
 
@@ -1093,6 +1087,10 @@
     dodge: ["Colleague playing with his phone", "A rogue office chair", "Someone reversing a trolley", "The coffee run crowd"],
   };
   var OBSTACLE_TYPES = ["jump", "duck", "dodge"];
+  // Matches the actual button colors — used to pick a DECOY color for
+  // the banner text (see maybeTriggerObstacle below), never the color
+  // that would actually be correct.
+  var OBSTACLE_COLORS = { jump: "#d4af37", duck: "#4a90d9", dodge: "#4fae6f" };
 
   function scheduleObstacles() {
     obstacleThresholds = [];
@@ -1116,6 +1114,16 @@
     var pool = OBSTACLE_FLAVORS[currentObstacleType];
     obstacleFlavorEl.textContent = "! " + pool[Math.floor(Math.random() * pool.length)] + " !";
     obstacleActionEl.textContent = currentObstacleType.toUpperCase() + "!";
+
+    // Decoy color: always one of the OTHER two buttons' colors, never
+    // the correct one — so glancing at the color and reaching for the
+    // matching button is wrong about as often as it's right. Reading
+    // the actual word is the only reliable path.
+    var decoyOptions = OBSTACLE_TYPES.filter(function (t) { return t !== currentObstacleType; });
+    var decoyColor = OBSTACLE_COLORS[decoyOptions[Math.floor(Math.random() * decoyOptions.length)]];
+    obstacleFlavorEl.style.color = decoyColor;
+    obstacleActionEl.style.color = decoyColor;
+
     obstacleBanner.classList.add("show");
 
     diamondButtons.forEach(function (btn) {
@@ -1171,6 +1179,26 @@
     timeStat.textContent = "0:00";
   }
   scheduleObstacles();
+
+  // ---------------------------------------------------------------------
+  // Back to the main menu — used by both "Play Again" (after a win) and
+  // the in-play "Main Menu" button. Fully tears down the current run
+  // (including the sensor listener's entry state) so a later Start
+  // goes through the whole permission/detection flow again from a
+  // clean slate, rather than silently resuming stale state.
+  // ---------------------------------------------------------------------
+  function returnToMenu() {
+    resetRunState();
+    clearInterval(timerHandle);
+    stageEntered = false;
+    usingFallback = false;
+    eventCount = 0;
+    seedNext = true;
+    stepFallback.style.display = "none";
+    stagePlay.classList.remove("active");
+    stageSetup.classList.add("active");
+    renderBestTimes();
+  }
 
   function registerStep() {
     if (won) return;
@@ -1304,7 +1332,7 @@
       stageEntered = true;
       setSensorBadge("Tap Mode — tap RUN for each step", "ok");
       enterPlayStage();
-      setNotice("Tap RUN to move, JUMP when prompted!");
+      setNotice("Tap RUN to move — and the matching button when an obstacle shows up!");
       return;
     }
 
@@ -1402,6 +1430,7 @@
       setSensorBadge("Sensor active — counting steps", "ok");
       setNotice("Start walking!");
     }
+    clearInterval(timerHandle);
     timerHandle = setInterval(tickTimer, 1000);
   }
 
@@ -1424,7 +1453,8 @@
     resetRunState();
     setNotice("Steps reset to zero.");
   });
-  document.getElementById("playAgainBtn").addEventListener("click", resetRunState);
+  document.getElementById("playAgainBtn").addEventListener("click", returnToMenu);
+  document.getElementById("mainMenuBtn").addEventListener("click", returnToMenu);
 
   document.getElementById("debugToggle").addEventListener("change", function (e) {
     debugPanel.classList.toggle("show", e.target.checked);
