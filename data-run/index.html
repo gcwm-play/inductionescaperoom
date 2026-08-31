@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Data Run — CPF Board Induction</title>
+<meta name="description" content="Standalone step-counter puzzle — a second-device puzzle for the CPF Board induction escape room." />
+<meta name="theme-color" content="#0B2545" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B2545'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23D4AF37'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --navy-950: #081a33;
+    --navy-900: #0b2545;
+    --navy-800: #123563;
+    --gold-500: #d4af37;
+    --gold-400: #e2c465;
+    --gold-300: #f0dc9a;
+    --paper: #f7f4ec;
+    --ink-soft: rgba(247, 244, 236, 0.72);
+    --red: #c23b3b;
+    --green: #1e8e5a;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--navy-950), var(--navy-900) 45%, var(--navy-800));
+    color: var(--paper);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #app {
+    max-width: 460px;
+    margin: 0 auto;
+    height: 100dvh;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gold-500);
+    display: block;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  p { line-height: 1.5; margin: 0; color: var(--ink-soft); font-size: 0.92rem; }
+
+  .card {
+    background: linear-gradient(160deg, var(--navy-800), var(--navy-900));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .card p + p { margin-top: 8px; }
+  .card ol {
+    margin: 8px 0 0;
+    padding-left: 1.2em;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+  .card ol li { margin-bottom: 4px; }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 999px;
+    padding: 13px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+    flex-shrink: 0;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn--primary { background: var(--gold-500); color: var(--navy-950); }
+  .btn--ghost {
+    background: transparent;
+    border: 1px solid rgba(247, 244, 236, 0.35);
+    color: var(--paper);
+  }
+  .btn--small { padding: 9px 14px; font-size: 0.8rem; }
+
+  .stage {
+    flex: 1;
+    min-height: 0;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .stage.active { display: flex; }
+  #stageSetup { justify-content: center; gap: 14px; }
+
+  .sensor-badge {
+    text-align: center;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--gold-300);
+    flex-shrink: 0;
+  }
+  .sensor-badge.ok { background: rgba(30, 142, 90, 0.18); border-color: var(--green); color: #a9f0cf; }
+  .sensor-badge.bad { background: rgba(194, 59, 59, 0.18); border-color: var(--red); color: #ffb3b3; }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .hud__stat { text-align: center; }
+  .hud__stat-num {
+    font-family: "Courier New", monospace;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--gold-400);
+    display: block;
+  }
+  .hud__stat-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Route panel — a corridor from "Team" to "Storeroom" that fills as */
+  /* steps come in, with a turn-around marker at the halfway point.    */
+  /* ---------------------------------------------------------------- */
+  .route-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    position: relative;
+  }
+  .step-total {
+    text-align: center;
+  }
+  .step-total .num {
+    font-family: "Courier New", monospace;
+    font-weight: 800;
+    font-size: 3.4rem;
+    color: var(--gold-400);
+    line-height: 1;
+    display: block;
+    font-variant-numeric: tabular-nums;
+  }
+  .step-total .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+
+  .route {
+    position: relative;
+    width: 100%;
+    padding: 0 6px;
+  }
+  .route__ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold-300);
+    margin-bottom: 8px;
+  }
+  .route__track {
+    position: relative;
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(8, 26, 51, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    overflow: visible;
+  }
+  .route__fill {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold-500), var(--gold-300));
+    transition: width 0.25s ease;
+  }
+  .route__turnaround {
+    position: absolute;
+    left: 50%;
+    top: -6px;
+    bottom: -6px;
+    width: 2px;
+    background: rgba(247, 244, 236, 0.4);
+  }
+  .route__turnaround-label {
+    position: absolute;
+    left: 50%;
+    top: 16px;
+    transform: translateX(-50%);
+    font-size: 0.62rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    text-align: center;
+  }
+  .route__marker {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 22px;
+    height: 22px;
+    margin-left: -11px;
+    margin-top: -11px;
+    border-radius: 50%;
+    background: var(--navy-950);
+    border: 3px solid var(--gold-400);
+    transition: left 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .step-fallback {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .step-fallback-btn {
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    background: var(--gold-500);
+    color: var(--navy-950);
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    line-height: 1.2;
+  }
+  .step-fallback-btn:active { transform: scale(0.95); }
+
+  .step-manual-link {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    text-decoration: underline;
+    font-size: 0.76rem;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+
+  .recal-btn {
+    position: absolute;
+    top: 0;
+    right: 6px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(8, 26, 51, 0.8);
+    border: 1px solid var(--gold-500);
+    color: var(--gold-400);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .recal-btn:active { transform: scale(0.94); }
+
+  .notice {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--gold-300);
+    min-height: 1.1em;
+    flex-shrink: 0;
+  }
+
+  .debug-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .debug-panel {
+    display: none;
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-family: "Courier New", monospace;
+    font-size: 0.7rem;
+    color: var(--gold-300);
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .debug-panel.show { display: flex; }
+
+  .keys-hint {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 26, 51, 0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 20;
+  }
+  .overlay.show { display: flex; }
+  .overlay__box {
+    background: linear-gradient(160deg, var(--navy-800), var(--navy-900));
+    border: 1px solid var(--gold-500);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+  }
+  .overlay__box h2 {
+    font-family: Georgia, serif;
+    color: var(--gold-400);
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+  }
+  .overlay__stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 16px 0;
+  }
+
+  .reveal-code {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 4px 0 18px;
+  }
+  .reveal-code__digit {
+    width: 42px;
+    height: 52px;
+    background: var(--navy-950);
+    border: 2px solid var(--gold-500);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gold-400);
+    font-family: "Courier New", monospace;
+  }
+  .reveal-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .route__fill, .route__marker { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- SETUP STAGE -->
+  <div class="stage active" id="stageSetup">
+    <div>
+      <span class="eyebrow">CPF Board Induction · Side Puzzle</span>
+      <h1>Data Run</h1>
+    </div>
+    <div class="card">
+      <p>One of the data points is stored in a far-away storeroom.</p>
+      <p>Choose your fittest team member to "run" to the room and fetch it back!</p>
+    </div>
+    <div class="card">
+      <p><strong>Instructions:</strong></p>
+      <ol>
+        <li>Choose your fastest team member to make the run.</li>
+        <li>When ready, tap Start below and start walking or running, keeping the phone with you the whole way.</li>
+        <li>Getting to the storeroom and back takes about 500 steps, so get moving!</li>
+      </ol>
+    </div>
+    <button class="btn btn--primary" id="startBtn">Start</button>
+    <p class="keys-hint">No phone handy? Press the spacebar on a keyboard to test the step counter first.</p>
+  </div>
+
+  <!-- PLAY STAGE -->
+  <div class="stage" id="stagePlay">
+    <div class="sensor-badge" id="sensorBadge">Waiting for first step&hellip;</div>
+
+    <div class="hud">
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="timeStat">0:00</span>
+        <span class="hud__stat-label">Time</span>
+      </div>
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="goalStat">500</span>
+        <span class="hud__stat-label">Steps needed</span>
+      </div>
+    </div>
+
+    <div class="route-wrap">
+      <button class="recal-btn" id="recalBtn" aria-label="Reset sensor" title="Reset sensor">&#8635;</button>
+
+      <div class="step-total">
+        <span class="num" id="stepCount">0</span>
+        <span class="label">steps so far</span>
+      </div>
+
+      <div class="route">
+        <div class="route__ends">
+          <span>Team</span>
+          <span>Storeroom</span>
+        </div>
+        <div class="route__track" id="routeTrack">
+          <div class="route__fill" id="routeFill"></div>
+          <div class="route__turnaround"></div>
+          <div class="route__marker" id="routeMarker"></div>
+        </div>
+        <div class="route__turnaround-label">turn around here</div>
+      </div>
+
+      <div class="step-fallback" id="stepFallback" style="display:none">
+        <button class="step-fallback-btn" id="fallbackStepBtn">Tap for<br/>each step</button>
+      </div>
+    </div>
+
+    <p class="notice" id="notice">&nbsp;</p>
+
+    <button class="step-manual-link" id="manualLink">Sensor undercounting? Log a step by hand</button>
+    <button class="btn btn--ghost btn--small" id="restartBtn">Reset Steps</button>
+
+    <div class="debug-toggle">
+      <input type="checkbox" id="debugToggle" />
+      <label for="debugToggle">Show sensor debug values</label>
+    </div>
+    <div class="debug-panel" id="debugPanel">
+      <span id="debugRaw">mag — / filtered —</span>
+      <span id="debugState">state — / events 0</span>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="winOverlay">
+  <div class="overlay__box">
+    <h2>Data Retrieved!</h2>
+    <p>Your runner made it there and back. Bring this number to your team's main device:</p>
+    <div class="reveal-label">Your code</div>
+    <div class="reveal-code" id="revealCode"></div>
+    <div class="overlay__stats">
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="winTime">0:00</span>
+        <span class="hud__stat-label">Time</span>
+      </div>
+      <div class="hud__stat">
+        <span class="hud__stat-num" id="winSteps">0</span>
+        <span class="hud__stat-label">Steps</span>
+      </div>
+    </div>
+    <button class="btn btn--primary" id="playAgainBtn">Play Again</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------------
+  // The code shown on the win screen — change this to whatever answer
+  // this puzzle should feed back into the main escape room app once
+  // you've decided which stage it slots into.
+  // ---------------------------------------------------------------------
+  var REVEAL_CODE = "500";
+
+  var STEP_GOAL = 500;
+
+  // ---------------------------------------------------------------------
+  // Step-detection tuning. accelerationIncludingGravity is used (rather
+  // than the gravity-removed `acceleration` field) because far more
+  // phones actually populate it. A low-pass filter tracks the gravity
+  // vector so it can be subtracted back out, leaving just the "bounce"
+  // of each footstep. A step is counted when that bounce crosses above
+  // STEP_THRESHOLD_HIGH, with a refractory window so one footstep can't
+  // be double-counted, and it must dip back below STEP_THRESHOLD_LOW
+  // before the next step can register.
+  //
+  // Both filters are time-constant based (not a fixed per-sample alpha)
+  // because devicemotion fires at very different rates across phones —
+  // anywhere from ~15Hz to ~60Hz. A fixed per-sample alpha tuned for one
+  // rate quietly breaks on another (too laggy or too twitchy); computing
+  // the decay from the actual gap between readings keeps the same
+  // real-world responsiveness regardless of sample rate.
+  // ---------------------------------------------------------------------
+  var GRAVITY_TAU_MS = 300; // how fast the gravity estimate adapts
+  var MAG_TAU_MS = 60;      // light smoothing on the bounce signal itself
+  var STEP_THRESHOLD_HIGH = 1.15;
+  var STEP_THRESHOLD_LOW = 0.6;
+  var STEP_MIN_INTERVAL_MS = 280;
+
+  var app = document.getElementById("app");
+  var stageSetup = document.getElementById("stageSetup");
+  var stagePlay = document.getElementById("stagePlay");
+  var sensorBadge = document.getElementById("sensorBadge");
+  var noticeEl = document.getElementById("notice");
+  var stepCountEl = document.getElementById("stepCount");
+  var routeFill = document.getElementById("routeFill");
+  var routeMarker = document.getElementById("routeMarker");
+  var timeStat = document.getElementById("timeStat");
+  var stepFallback = document.getElementById("stepFallback");
+  var winOverlay = document.getElementById("winOverlay");
+  var revealCodeEl = document.getElementById("revealCode");
+  var debugPanel = document.getElementById("debugPanel");
+  var debugRaw = document.getElementById("debugRaw");
+  var debugState = document.getElementById("debugState");
+
+  document.getElementById("goalStat").textContent = STEP_GOAL;
+
+  var stepCount = 0;
+  var startTime = null;
+  var timerHandle = null;
+  var won = false;
+
+  var gravity = { x: 0, y: 0, z: 0 };
+  var seedNext = true;
+  var filteredMag = 0;
+  var stepPhase = "below"; // "below" | "above" — hysteresis state
+  var lastStepTime = 0;
+  var lastEventTime = 0;
+  var eventCount = 0;
+  var stageEntered = false;
+  var usingFallback = false;
+
+  function setNotice(text) { noticeEl.textContent = text || " "; }
+  function setSensorBadge(text, cls) {
+    sensorBadge.textContent = text;
+    sensorBadge.className = "sensor-badge" + (cls ? " " + cls : "");
+  }
+
+  function formatTime(sec) {
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function updateRoute() {
+    var pct = Math.min(100, (stepCount / STEP_GOAL) * 100);
+    routeFill.style.width = pct + "%";
+    routeMarker.style.left = pct + "%";
+    stepCountEl.textContent = stepCount;
+  }
+
+  function registerStep() {
+    if (won) return;
+    stepCount++;
+    updateRoute();
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+    if (stepCount >= STEP_GOAL) {
+      win();
+    }
+  }
+
+  function tickTimer() {
+    if (!startTime || won) return;
+    var elapsed = Math.floor((Date.now() - startTime) / 1000);
+    timeStat.textContent = formatTime(elapsed);
+  }
+
+  function win() {
+    won = true;
+    var elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    document.getElementById("winTime").textContent = formatTime(elapsed);
+    document.getElementById("winSteps").textContent = stepCount;
+    revealCodeEl.innerHTML = REVEAL_CODE.split("").map(function (d) {
+      return '<div class="reveal-code__digit">' + d + "</div>";
+    }).join("");
+    winOverlay.classList.add("show");
+  }
+
+  // ---------------------------------------------------------------------
+  // Sensor handling
+  // ---------------------------------------------------------------------
+  function processReading(acc, usingRaw, now) {
+    var dt = lastEventTime ? Math.max(1, Math.min(now - lastEventTime, 500)) : 16;
+    lastEventTime = now;
+
+    if (seedNext) {
+      gravity.x = acc.x; gravity.y = acc.y; gravity.z = acc.z;
+      filteredMag = 0;
+      stepPhase = "below";
+      seedNext = false;
+      return;
+    }
+
+    var linear;
+    if (usingRaw) {
+      var gravityAlpha = Math.exp(-dt / GRAVITY_TAU_MS);
+      gravity.x = gravityAlpha * gravity.x + (1 - gravityAlpha) * acc.x;
+      gravity.y = gravityAlpha * gravity.y + (1 - gravityAlpha) * acc.y;
+      gravity.z = gravityAlpha * gravity.z + (1 - gravityAlpha) * acc.z;
+      linear = { x: acc.x - gravity.x, y: acc.y - gravity.y, z: acc.z - gravity.z };
+    } else {
+      linear = acc;
+    }
+
+    var mag = Math.sqrt(linear.x * linear.x + linear.y * linear.y + linear.z * linear.z);
+    var magAlpha = Math.exp(-dt / MAG_TAU_MS);
+    filteredMag = magAlpha * filteredMag + (1 - magAlpha) * mag;
+
+    if (stepPhase === "below" && filteredMag > STEP_THRESHOLD_HIGH && (now - lastStepTime) > STEP_MIN_INTERVAL_MS) {
+      stepPhase = "above";
+      lastStepTime = now;
+      registerStep();
+    } else if (stepPhase === "above" && filteredMag < STEP_THRESHOLD_LOW) {
+      stepPhase = "below";
+    }
+
+    if (debugPanel.classList.contains("show")) {
+      debugRaw.textContent = "mag " + mag.toFixed(2) + " / filtered " + filteredMag.toFixed(2);
+      debugState.textContent = "state " + stepPhase + " / events " + eventCount;
+    }
+  }
+
+  function handleMotion(e) {
+    var acc = e.accelerationIncludingGravity;
+    var usingRaw = true;
+    if (!acc || acc.x === null || acc.x === undefined) {
+      acc = e.acceleration;
+      usingRaw = false;
+    }
+    if (!acc || acc.x === null || acc.x === undefined) return;
+
+    var isFirstEventSinceFallback = usingFallback && eventCount === 0;
+    eventCount++;
+
+    if (!stageEntered) {
+      stageEntered = true;
+      usingFallback = false;
+      seedNext = true;
+      enterPlayStage();
+    } else if (isFirstEventSinceFallback) {
+      // Sensor data started arriving again in the background after we'd
+      // already fallen back to manual counting. Don't silently resume
+      // automatic counting from a reading that could be mid-step — just
+      // let the player know; processReading() below still runs (a fresh
+      // seed handles the transition safely) since usingFallback flips off
+      // via the retry button, not here.
+      setSensorBadge("Sensor detected — tap ↺ to switch back", "ok");
+      setNotice("Motion sensor is back. Tap ↺ (top-right) to resume automatic counting.");
+    }
+
+    if (usingFallback) return;
+    processReading(acc, usingRaw, Date.now());
+  }
+
+  function beginTracking() {
+    setNotice("Requesting motion access…");
+    setSensorBadge("Waiting for first step…");
+    var hasAPI = typeof window.DeviceMotionEvent !== "undefined";
+    var needsPermission = hasAPI && typeof DeviceMotionEvent.requestPermission === "function";
+
+    if (needsPermission) {
+      DeviceMotionEvent.requestPermission()
+        .then(function (state) {
+          if (state === "granted") {
+            window.addEventListener("devicemotion", handleMotion);
+            waitForFirstReading();
+          } else {
+            fallBackToManual("Motion access denied — log steps by hand.", "Motion access denied — tap ↺ to retry");
+          }
+        })
+        .catch(function () {
+          fallBackToManual("Couldn't get motion access — log steps by hand.", "Motion access unavailable — tap ↺ to retry");
+        });
+    } else if (hasAPI) {
+      window.addEventListener("devicemotion", handleMotion);
+      waitForFirstReading();
+    } else {
+      fallBackToManual("No motion sensor detected — log steps by hand.", "No DeviceMotionEvent support — manual mode");
+    }
+  }
+
+  function waitForFirstReading() {
+    setTimeout(function () {
+      if (!stageEntered) {
+        fallBackToManual("No sensor data came through — log steps by hand.", "No sensor data — tap ↺ to retry, still listening");
+      }
+    }, 2500);
+  }
+
+  function fallBackToManual(noticeText, badgeText) {
+    usingFallback = true;
+    eventCount = 0;
+    setNotice(noticeText);
+    setSensorBadge(badgeText, "bad");
+    stepFallback.style.display = "flex";
+    if (!stageEntered) {
+      stageEntered = true;
+      enterPlayStage();
+    }
+  }
+
+  function retrySensor() {
+    // Always resets the count (a clean restart), and if we're in
+    // fallback, also makes a fresh attempt at motion permission/access —
+    // this is the "recalibrate" button's dual purpose.
+    stepCount = 0;
+    won = false;
+    startTime = Date.now();
+    seedNext = true;
+    stepPhase = "below";
+    winOverlay.classList.remove("show");
+    updateRoute();
+    timeStat.textContent = "0:00";
+
+    if (usingFallback) {
+      setNotice("Retrying motion sensor…");
+      setSensorBadge("Waiting for first step…");
+      var hasAPI = typeof window.DeviceMotionEvent !== "undefined";
+      var needsPermission = hasAPI && typeof DeviceMotionEvent.requestPermission === "function";
+      if (needsPermission) {
+        DeviceMotionEvent.requestPermission()
+          .then(function (state) {
+            if (state === "granted") {
+              window.addEventListener("devicemotion", handleMotion);
+              eventCount = 0;
+            } else {
+              setNotice("Still no motion access — keep using the tap button.");
+              setSensorBadge("Motion access denied — manual mode", "bad");
+            }
+          })
+          .catch(function () {
+            setNotice("Still couldn't get motion access — keep using the tap button.");
+            setSensorBadge("Motion access unavailable — manual mode", "bad");
+          });
+      } else if (hasAPI) {
+        // Listener is likely already attached from the first attempt;
+        // re-adding the same function reference is a safe no-op.
+        window.addEventListener("devicemotion", handleMotion);
+        eventCount = 0;
+      }
+    } else {
+      setSensorBadge("Sensor active — counting steps", "ok");
+      setNotice("Steps reset to zero.");
+    }
+  }
+
+  function enterPlayStage() {
+    stageSetup.classList.remove("active");
+    stagePlay.classList.add("active");
+    startTime = Date.now();
+    if (!usingFallback) {
+      setSensorBadge("Sensor active — counting steps", "ok");
+      setNotice("Start walking!");
+    }
+    timerHandle = setInterval(tickTimer, 1000);
+  }
+
+  // ---------------------------------------------------------------------
+  // Manual / fallback step logging
+  // ---------------------------------------------------------------------
+  document.getElementById("fallbackStepBtn").addEventListener("click", registerStep);
+  document.getElementById("manualLink").addEventListener("click", registerStep);
+  document.addEventListener("keydown", function (e) {
+    if (e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      registerStep();
+    }
+  });
+
+  document.getElementById("startBtn").addEventListener("click", beginTracking);
+  document.getElementById("recalBtn").addEventListener("click", retrySensor);
+  document.getElementById("restartBtn").addEventListener("click", function () {
+    stepCount = 0;
+    won = false;
+    startTime = Date.now();
+    winOverlay.classList.remove("show");
+    updateRoute();
+    timeStat.textContent = "0:00";
+    setNotice("Steps reset to zero.");
+  });
+  document.getElementById("playAgainBtn").addEventListener("click", function () {
+    stepCount = 0;
+    won = false;
+    startTime = Date.now();
+    winOverlay.classList.remove("show");
+    updateRoute();
+    timeStat.textContent = "0:00";
+  });
+
+  document.getElementById("debugToggle").addEventListener("change", function (e) {
+    debugPanel.classList.toggle("show", e.target.checked);
+  });
+})();
+</script>
+</body>
+</html>
