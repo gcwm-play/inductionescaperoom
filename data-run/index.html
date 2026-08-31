@@ -96,6 +96,20 @@
     color: var(--paper);
   }
   .btn--small { padding: 9px 14px; font-size: 0.8rem; }
+  .btn--outline {
+    background: transparent;
+    border: 1.5px solid var(--gold-500);
+    color: var(--gold-400);
+  }
+
+  /* A visible break between the manual step-log button above and the
+     reset/debug utility controls below, so a mis-tap can't land on
+     "Reset Steps" (which zeroes the count) right after tapping the
+     much more commonly-used manual-log button. */
+  .utility-divider {
+    border-top: 1px solid rgba(212, 175, 55, 0.25);
+    margin: 10px 0 -2px;
+  }
 
   .stage {
     flex: 1;
@@ -357,32 +371,71 @@
   .overlay__box h2 {
     font-family: Georgia, serif;
     color: var(--gold-400);
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     font-size: 1.4rem;
   }
-  .overlay__stats {
+
+  .seal {
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-300), var(--gold-500) 65%, #a9791f 100%);
+    border: 2px solid var(--gold-300);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 24px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--navy-950);
+  }
+  .cert-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--gold-300);
+    margin-bottom: 6px;
+  }
+  .cert-line {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 1.02rem;
+    line-height: 1.5;
+    color: var(--paper);
+  }
+  .cert-line strong {
+    font-style: normal;
+    font-family: "Courier New", monospace;
+    color: var(--gold-400);
+  }
+  .cert-divider {
+    border-top: 1px dashed rgba(212, 175, 55, 0.3);
     margin: 16px 0;
+  }
+  .replay-pitch {
+    font-size: 0.86rem;
+    margin: 14px 0 16px;
   }
 
   .reveal-code {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
     justify-content: center;
-    margin: 4px 0 18px;
+    margin: 4px 0 12px;
   }
   .reveal-code__digit {
-    width: 42px;
-    height: 52px;
+    width: 32px;
+    height: 42px;
     background: var(--navy-950);
     border: 2px solid var(--gold-500);
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: var(--gold-400);
     font-family: "Courier New", monospace;
@@ -477,7 +530,11 @@
 
     <p class="notice" id="notice">&nbsp;</p>
 
-    <button class="step-manual-link" id="manualLink">Sensor undercounting? Log a step by hand</button>
+    <p class="keys-hint" id="manualHint">Sensor undercounting?</p>
+    <button class="btn btn--outline" id="manualLink">+ Log a Step Manually</button>
+
+    <div class="utility-divider"></div>
+
     <button class="btn btn--ghost btn--small" id="restartBtn">Reset Steps</button>
 
     <div class="debug-toggle">
@@ -493,21 +550,20 @@
 
 <div class="overlay" id="winOverlay">
   <div class="overlay__box">
+    <div class="seal" aria-hidden="true">&#10003;</div>
+    <div class="cert-eyebrow">Certificate of Completion</div>
     <h2>Data Retrieved!</h2>
-    <p>Your runner made it there and back. Bring this number to your team's main device:</p>
-    <div class="reveal-label">Your code</div>
-    <div class="reveal-code" id="revealCode"></div>
-    <div class="overlay__stats">
-      <div class="hud__stat">
-        <span class="hud__stat-num" id="winTime">0:00</span>
-        <span class="hud__stat-label">Time</span>
-      </div>
-      <div class="hud__stat">
-        <span class="hud__stat-num" id="winSteps">0</span>
-        <span class="hud__stat-label">Steps</span>
-      </div>
-    </div>
+    <p class="cert-line">Made it to the secret storeroom and back in <strong id="certTime">0:00</strong> <span id="certQualifier"></span>.</p>
     <p class="notice" id="rankNote">&nbsp;</p>
+
+    <div class="cert-divider"></div>
+
+    <div class="reveal-label">Unlock word</div>
+    <div class="reveal-code" id="revealCode"></div>
+    <p>Bring this word back to your team's main device.</p>
+
+    <p class="replay-pitch">Think you can run and retrieve the data faster? You can try again! The team with the fastest "runner" gets an extra $1 for their character!</p>
+
     <button class="btn btn--primary" id="playAgainBtn">Play Again</button>
   </div>
 </div>
@@ -517,11 +573,12 @@
   "use strict";
 
   // ---------------------------------------------------------------------
-  // The code shown on the win screen — change this to whatever answer
-  // this puzzle should feed back into the main escape room app once
-  // you've decided which stage it slots into.
+  // The word shown on the win screen — the answer this puzzle feeds
+  // back into the main escape room app. reveal-code renders it letter
+  // by letter and wraps onto a second row on its own for longer words,
+  // so this doesn't need to stay numeric or a fixed length.
   // ---------------------------------------------------------------------
-  var REVEAL_CODE = "500";
+  var REVEAL_CODE = "COMMITTED";
 
   var STEP_GOAL = 500;
 
@@ -747,13 +804,55 @@
     renderBestTimes();
   });
 
+  // ---------------------------------------------------------------------
+  // Win-screen "certificate" qualifier — a dry, deadpan aside picked to
+  // match how the run actually went, so replays don't read the exact
+  // same line twice. Picked by elapsed time, except a run that beats
+  // this device's previous best always pulls from its own pool instead.
+  // ---------------------------------------------------------------------
+  var QUALIFIERS_IMPROVED = [
+    "faster than their last attempt — someone's motivated",
+    "beating their own record, no less",
+    "shaving real time off their previous run",
+  ];
+  var QUALIFIERS_FAST = [
+    "without breaking a sweat",
+    "like they had a bus to catch",
+    "in what can only be described as sprint mode",
+    "before anyone could even ask if they needed a lift",
+  ];
+  var QUALIFIERS_NORMAL = [
+    "at a perfectly reasonable pace",
+    "with quiet determination",
+    "in a very measured, on-brand fashion",
+    "like someone who takes the stairs on principle",
+  ];
+  var QUALIFIERS_LEISURELY = [
+    "after taking the scenic route",
+    "with a few well-earned pauses",
+    "in their own time, and proud of it",
+  ];
+  var QUALIFIERS_EPIC = [
+    "eventually",
+    "having technically never given up",
+    'in a time best described as "thorough"',
+  ];
+  function pickQualifier(elapsedSec, isImprovement) {
+    var pool = isImprovement ? QUALIFIERS_IMPROVED
+      : elapsedSec <= 150 ? QUALIFIERS_FAST
+      : elapsedSec <= 300 ? QUALIFIERS_NORMAL
+      : elapsedSec <= 450 ? QUALIFIERS_LEISURELY
+      : QUALIFIERS_EPIC;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
   function registerStep() {
     if (won) return;
     stepCount++;
     updateRoute();
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
     if (stepCount % 50 === 0 && stepCount < STEP_GOAL) {
-      announce(stepCount + " steps");
+      announce(stepCount === STEP_GOAL / 2 ? stepCount + " steps. Halfway there!" : stepCount + " steps");
     }
     if (stepCount >= STEP_GOAL) {
       win();
@@ -769,8 +868,13 @@
   function win() {
     won = true;
     var elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-    document.getElementById("winTime").textContent = formatTime(elapsed);
-    document.getElementById("winSteps").textContent = stepCount;
+
+    var priorTimes = loadBestTimes();
+    var priorBestSec = priorTimes.length ? priorTimes[0].elapsedSec : null;
+    var isImprovement = priorBestSec !== null && elapsed < priorBestSec;
+    document.getElementById("certTime").textContent = formatTime(elapsed);
+    document.getElementById("certQualifier").textContent = pickQualifier(elapsed, isImprovement);
+
     revealCodeEl.innerHTML = REVEAL_CODE.split("").map(function (d) {
       return '<div class="reveal-code__digit">' + d + "</div>";
     }).join("");
