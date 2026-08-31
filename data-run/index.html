@@ -603,26 +603,24 @@
     </div>
     <div class="card">
       <p>One of the data points is stored in a far-away storeroom.</p>
-      <p>Choose your fittest team member to "run" to the room and fetch it back!</p>
+      <p>Send your fittest (or fastest-fingered) team member to fetch it back!</p>
     </div>
     <div class="card">
-      <p><strong>Instructions:</strong></p>
+      <p><strong>How it works:</strong></p>
       <ol>
-        <li>Choose your fastest team member to make the run.</li>
-        <li>When ready, tap Start below and start walking or running, keeping the phone with you the whole way.</li>
-        <li>Getting to the storeroom and back takes about 500 steps, so get moving!</li>
+        <li>Pick a mode below — Run or Tap — based on how much space you've got to move in.</li>
+        <li>Tap Start, then keep going until the on-screen counter reaches the goal.</li>
+        <li>Reaching the goal reveals the unlock code — bring it back to your team's main device.</li>
       </ol>
-      <p style="margin-top:10px">Phone in a pocket not registering steps? Just hold it in your hand and give it a firm shake for each step instead.</p>
-      <p style="margin-top:10px">Watch for obstacles mid-run — read the warning and tap the matching button (JUMP, DUCK, or DODGE) in time, or it's +5 seconds on the clock.</p>
     </div>
     <div class="mode-select">
       <button type="button" class="mode-option is-selected" id="modeRunBtn" data-mode="run">
         <span class="mode-option__title">Run Mode</span>
-        <span class="mode-option__desc">Walk, run, or shake — the phone's sensor counts your steps.</span>
+        <span class="mode-option__desc">Walk, run, or shake the phone — your steps count themselves, no buttons to press. Purely physical, and counted a little faster than real steps to keep pace with Tap Mode. Needs room to move. Phone in a pocket not registering? Hold it in your hand and give it a firm shake per step instead.</span>
       </button>
       <button type="button" class="mode-option" id="modeTapBtn" data-mode="tap">
         <span class="mode-option__title">Tap Mode</span>
-        <span class="mode-option__desc">No sensor — tap RUN for every step and pick the right button for every obstacle. Harder work!</span>
+        <span class="mode-option__desc">Stay right where you are and tap RUN for every step. Watch for obstacle call-outs and hit the matching button (JUMP / DUCK / DODGE) in time, or it's +5 seconds on the clock. No walking needed, but it takes focus and fast fingers.</span>
       </button>
     </div>
     <div class="card" id="bestTimesCard" style="display:none">
@@ -757,6 +755,14 @@
 
   var STEP_GOAL = 500;
 
+  // Run Mode has no obstacles/reaction penalties to slow it down, while
+  // Tap Mode's obstacle misses cost real time — so a real footstep in Run
+  // Mode counts as 1.1 toward the goal (10% "accelerated") to keep the
+  // two modes in the same ballpark for total completion time. Tap Mode's
+  // RUN taps are unaffected (multiplier 1).
+  var RUN_STEP_MULTIPLIER = 1.1;
+  var stepMultiplier = 1;
+
   // ---------------------------------------------------------------------
   // Motion-detection tuning. accelerationIncludingGravity is used (rather
   // than the gravity-removed `acceleration` field) because far more
@@ -838,6 +844,7 @@
   var jumpBtn = document.getElementById("jumpBtn");
   var duckBtn = document.getElementById("duckBtn");
   var dodgeBtn = document.getElementById("dodgeBtn");
+  var actionDiamond = document.getElementById("actionDiamond");
   var obstacleBanner = document.getElementById("obstacleBanner");
   var obstacleFlavorEl = document.getElementById("obstacleFlavor");
   var obstacleActionEl = document.getElementById("obstacleAction");
@@ -890,7 +897,9 @@
     var pct = Math.min(100, (stepCount / STEP_GOAL) * 100);
     routeFill.style.width = pct + "%";
     routeMarker.style.left = pct + "%";
-    stepCountEl.textContent = stepCount;
+    // stepCount can be fractional (Run Mode's 1.1x multiplier) — round it
+    // for a clean-looking display without affecting the underlying count.
+    stepCountEl.textContent = Math.min(STEP_GOAL, Math.round(stepCount));
   }
 
   // ---------------------------------------------------------------------
@@ -1122,6 +1131,11 @@
     runBtn.style.display = isTap ? "" : "none";
     manualHint.style.display = isTap ? "none" : "";
     manualLink.style.display = isTap ? "none" : "";
+    // Run Mode is purely sensor-driven — no obstacle mini-game, no
+    // gamepad buttons at all. Only Tap Mode uses them.
+    obstacleBanner.style.display = isTap ? "" : "none";
+    actionDiamond.style.display = isTap ? "" : "none";
+    stepMultiplier = isTap ? 1 : RUN_STEP_MULTIPLIER;
   }
 
   // ---------------------------------------------------------------------
@@ -1176,6 +1190,7 @@
   }
 
   function maybeTriggerObstacle() {
+    if (playMode !== "tap") return; // Run Mode has no obstacles at all
     if (obstacleActive || nextObstacleIdx >= obstacleThresholds.length) return;
     if (stepCount < obstacleThresholds[nextObstacleIdx]) return;
     nextObstacleIdx++;
@@ -1277,13 +1292,19 @@
 
   function registerStep() {
     if (won) return;
-    stepCount++;
+    // Track 50-step milestones by comparing which 50-bucket stepCount was
+    // in before vs. after — a plain "% 50 === 0" check doesn't reliably
+    // fire once stepCount can be fractional (Run Mode's 1.1x multiplier).
+    var prevMilestone = Math.floor(stepCount / 50);
+    stepCount += stepMultiplier;
     updateRoute();
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
-    if (stepCount % 50 === 0 && stepCount < STEP_GOAL) {
-      announce(stepCount === STEP_GOAL / 2 ? stepCount + " steps. Halfway there!" : stepCount + " steps");
+    var newMilestone = Math.floor(stepCount / 50);
+    if (newMilestone > prevMilestone && stepCount < STEP_GOAL) {
+      var milestoneValue = newMilestone * 50;
+      announce(milestoneValue === STEP_GOAL / 2 ? milestoneValue + " steps. Halfway there!" : milestoneValue + " steps");
     }
-    maybeTriggerObstacle();
+    maybeTriggerObstacle(); // no-op outside Tap Mode
     if (stepCount >= STEP_GOAL) {
       win();
     }
