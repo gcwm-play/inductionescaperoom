@@ -117,9 +117,40 @@
     display: none;
     flex-direction: column;
     gap: 10px;
+    overflow-y: auto;
   }
   .stage.active { display: flex; }
-  #stageSetup { justify-content: center; gap: 14px; }
+  /* flex-start (not center) + scroll: with the mode picker and best-times
+     card, setup content is often taller than a small phone's viewport —
+     centering would just clip the top and bottom evenly instead of
+     making the rest reachable. */
+  #stageSetup { justify-content: flex-start; gap: 14px; }
+
+  .mode-select {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mode-option {
+    appearance: none;
+    text-align: left;
+    background: rgba(212, 175, 55, 0.06);
+    border: 1.5px solid rgba(212, 175, 55, 0.25);
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mode-option__title { font-weight: 700; color: var(--paper); font-size: 0.92rem; }
+  .mode-option__desc { font-size: 0.76rem; color: var(--ink-soft); }
+  .mode-option.is-selected {
+    border-color: var(--gold-500);
+    background: rgba(212, 175, 55, 0.16);
+  }
+  .mode-option.is-selected .mode-option__title { color: var(--gold-400); }
 
   .sensor-badge {
     text-align: center;
@@ -171,8 +202,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 22px;
+    justify-content: flex-start;
+    gap: 14px;
+    padding-top: 2px;
     position: relative;
   }
   .step-total {
@@ -181,7 +213,7 @@
   .step-total .num {
     font-family: "Courier New", monospace;
     font-weight: 800;
-    font-size: 3.4rem;
+    font-size: 4.2rem;
     color: var(--gold-400);
     line-height: 1;
     display: block;
@@ -208,7 +240,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--gold-300);
-    margin-bottom: 8px;
+    margin-bottom: 24px; /* clears the runner sprite's head, which rises above the track */
   }
   .route__track {
     position: relative;
@@ -244,19 +276,70 @@
     white-space: nowrap;
     text-align: center;
   }
-  .route__marker {
+  /* An 8-bit-style running figure: blocky SVG limbs, no anti-aliasing,
+     each swinging on a 2-frame steps() cycle rather than a smooth tween
+     — that snap is what reads as "8-bit" rather than a fluid tween. */
+  .runner {
     position: absolute;
     top: 50%;
     left: 0%;
-    width: 22px;
-    height: 22px;
-    margin-left: -11px;
-    margin-top: -11px;
-    border-radius: 50%;
-    background: var(--navy-950);
-    border: 3px solid var(--gold-400);
+    width: 26px;
+    height: 30px;
+    margin-left: -13px;
+    margin-top: -24px;
     transition: left 0.25s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  }
+  .runner__svg { width: 100%; height: 100%; shape-rendering: crispEdges; }
+  .runner__leg-l { transform-origin: 8px 14px; animation: legSwingL 0.5s steps(2) infinite; }
+  .runner__leg-r { transform-origin: 12px 14px; animation: legSwingR 0.5s steps(2) infinite; }
+  .runner__arm-l { transform-origin: 8px 7px; animation: armSwingL 0.5s steps(2) infinite; }
+  .runner__arm-r { transform-origin: 12px 7px; animation: armSwingR 0.5s steps(2) infinite; }
+  @keyframes legSwingL { 0%, 100% { transform: rotate(26deg); } 50% { transform: rotate(-26deg); } }
+  @keyframes legSwingR { 0%, 100% { transform: rotate(-26deg); } 50% { transform: rotate(26deg); } }
+  @keyframes armSwingL { 0%, 100% { transform: rotate(-22deg); } 50% { transform: rotate(22deg); } }
+  @keyframes armSwingR { 0%, 100% { transform: rotate(22deg); } 50% { transform: rotate(-22deg); } }
+
+  .action-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .action-btn {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    border: none;
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .action-btn:active { transform: scale(0.95); }
+  .action-btn--run {
+    background: var(--red);
+    color: var(--paper);
+    box-shadow: 0 3px 10px rgba(194, 59, 59, 0.4);
+  }
+  .action-btn--jump {
+    background: rgba(212, 175, 55, 0.14);
+    border: 2px solid rgba(212, 175, 55, 0.35);
+    color: rgba(226, 196, 101, 0.55);
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .action-btn--jump:disabled { cursor: default; }
+  .action-btn--jump.is-active {
+    background: var(--gold-500);
+    color: var(--navy-950);
+    border-color: var(--gold-300);
+    box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.22), 0 3px 12px rgba(0, 0, 0, 0.4);
+    animation: jumpPulse 0.5s ease-in-out infinite;
+  }
+  @keyframes jumpPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
   }
 
   .step-fallback {
@@ -449,7 +532,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn, .route__fill, .route__marker { transition: none; }
+    .btn, .route__fill, .runner { transition: none; }
+    .runner__leg-l, .runner__leg-r, .runner__arm-l, .runner__arm-r,
+    .action-btn--jump.is-active { animation: none; }
   }
 </style>
 </head>
@@ -473,6 +558,17 @@
         <li>Getting to the storeroom and back takes about 500 steps, so get moving!</li>
       </ol>
       <p style="margin-top:10px">Phone in a pocket not registering steps? Just hold it in your hand and give it a firm shake for each step instead.</p>
+      <p style="margin-top:10px">Watch for obstacles mid-run — tap JUMP when prompted, or it's +5 seconds on the clock.</p>
+    </div>
+    <div class="mode-select">
+      <button type="button" class="mode-option is-selected" id="modeRunBtn" data-mode="run">
+        <span class="mode-option__title">Run Mode</span>
+        <span class="mode-option__desc">Walk, run, or shake — the phone's sensor counts your steps.</span>
+      </button>
+      <button type="button" class="mode-option" id="modeTapBtn" data-mode="tap">
+        <span class="mode-option__title">Tap Mode</span>
+        <span class="mode-option__desc">No sensor — tap RUN for every step and JUMP for every obstacle. Harder work!</span>
+      </button>
     </div>
     <div class="card" id="bestTimesCard" style="display:none">
       <p><strong>Fastest times on this device</strong></p>
@@ -512,15 +608,29 @@
 
       <div class="route">
         <div class="route__ends">
-          <span>Team</span>
+          <span>You</span>
           <span>Storeroom</span>
         </div>
         <div class="route__track" id="routeTrack">
           <div class="route__fill" id="routeFill"></div>
           <div class="route__turnaround"></div>
-          <div class="route__marker" id="routeMarker"></div>
+          <div class="runner" id="routeMarker">
+            <svg class="runner__svg" viewBox="0 0 20 24" role="img" aria-label="Runner">
+              <rect x="6" y="0" width="8" height="7" fill="var(--paper)" />
+              <rect x="8" y="6" width="4" height="9" fill="var(--paper)" />
+              <rect class="runner__arm-l" x="4" y="7" width="3" height="8" fill="var(--gold-400)" />
+              <rect class="runner__arm-r" x="13" y="7" width="3" height="8" fill="var(--gold-500)" />
+              <rect class="runner__leg-l" x="7" y="14" width="3" height="10" fill="var(--gold-400)" />
+              <rect class="runner__leg-r" x="10" y="14" width="3" height="10" fill="var(--gold-500)" />
+            </svg>
+          </div>
         </div>
         <div class="route__turnaround-label">turn around here</div>
+      </div>
+
+      <div class="action-row" id="actionRow">
+        <button class="action-btn action-btn--run" id="runBtn" style="display:none">RUN</button>
+        <button class="action-btn action-btn--jump" id="jumpBtn" disabled>JUMP</button>
       </div>
 
       <div class="step-fallback" id="stepFallback" style="display:none">
@@ -658,6 +768,13 @@
   var bestTimesCard = document.getElementById("bestTimesCard");
   var bestTimesList = document.getElementById("bestTimesList");
   var rankNote = document.getElementById("rankNote");
+  var recalBtn = document.getElementById("recalBtn");
+  var runBtn = document.getElementById("runBtn");
+  var jumpBtn = document.getElementById("jumpBtn");
+  var manualHint = document.getElementById("manualHint");
+  var manualLink = document.getElementById("manualLink");
+  var modeRunBtn = document.getElementById("modeRunBtn");
+  var modeTapBtn = document.getElementById("modeTapBtn");
 
   document.getElementById("goalStat").textContent = STEP_GOAL;
 
@@ -665,6 +782,7 @@
   var startTime = null;
   var timerHandle = null;
   var won = false;
+  var playMode = "run"; // "run" | "tap" — chosen on the setup screen
 
   var gravity = { x: 0, y: 0, z: 0 };
   var seedNext = true;
@@ -846,6 +964,107 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
+  // ---------------------------------------------------------------------
+  // Run Mode vs Tap Mode — chosen on the setup screen. Run Mode is the
+  // sensor-driven flow above; Tap Mode skips it entirely and drives
+  // registerStep() from the RUN button instead. Both modes use the same
+  // JUMP button/obstacle system below, since that's a deliberate
+  // reaction-time challenge either way.
+  // ---------------------------------------------------------------------
+  function setMode(mode) {
+    playMode = mode;
+    modeRunBtn.classList.toggle("is-selected", mode === "run");
+    modeTapBtn.classList.toggle("is-selected", mode === "tap");
+  }
+  modeRunBtn.addEventListener("click", function () { setMode("run"); });
+  modeTapBtn.addEventListener("click", function () { setMode("tap"); });
+
+  function applyModeUI() {
+    var isTap = playMode === "tap";
+    recalBtn.style.display = isTap ? "none" : "";
+    runBtn.style.display = isTap ? "" : "none";
+    manualHint.style.display = isTap ? "none" : "";
+    manualLink.style.display = isTap ? "none" : "";
+  }
+
+  // ---------------------------------------------------------------------
+  // Obstacles — 15 reaction-time checks spread across the run. Each one
+  // gives OBSTACLE_REACT_MS to tap JUMP; missing the window costs
+  // OBSTACLE_PENALTY_MS, applied by pushing startTime backward so the
+  // live timer (and the final certificate time) both reflect it
+  // immediately, with no separate "penalty seconds" bookkeeping needed.
+  // Thresholds are step counts, spaced with a little jitter so they
+  // don't land on a predictable rhythm, and re-rolled on every restart.
+  // ---------------------------------------------------------------------
+  var OBSTACLE_COUNT = 15;
+  var OBSTACLE_REACT_MS = 2000;
+  var OBSTACLE_PENALTY_MS = 5000;
+  var obstacleThresholds = [];
+  var nextObstacleIdx = 0;
+  var obstacleActive = false;
+  var obstacleTimeoutHandle = null;
+
+  function scheduleObstacles() {
+    obstacleThresholds = [];
+    nextObstacleIdx = 0;
+    var startAt = 15;
+    var endAt = STEP_GOAL - 10;
+    var segment = (endAt - startAt) / OBSTACLE_COUNT;
+    for (var i = 0; i < OBSTACLE_COUNT; i++) {
+      var jitter = Math.random() * segment * 0.7;
+      obstacleThresholds.push(Math.round(startAt + i * segment + jitter));
+    }
+  }
+
+  function maybeTriggerObstacle() {
+    if (obstacleActive || nextObstacleIdx >= obstacleThresholds.length) return;
+    if (stepCount < obstacleThresholds[nextObstacleIdx]) return;
+    nextObstacleIdx++;
+    obstacleActive = true;
+    jumpBtn.disabled = false;
+    jumpBtn.classList.add("is-active");
+    setNotice("Obstacle ahead — tap JUMP!");
+    announce("Jump!");
+    clearTimeout(obstacleTimeoutHandle);
+    obstacleTimeoutHandle = setTimeout(function () {
+      if (obstacleActive) resolveObstacle(false);
+    }, OBSTACLE_REACT_MS);
+  }
+
+  function resolveObstacle(success) {
+    obstacleActive = false;
+    jumpBtn.disabled = true;
+    jumpBtn.classList.remove("is-active");
+    clearTimeout(obstacleTimeoutHandle);
+    if (success) {
+      setNotice("Nice dodge!");
+    } else {
+      startTime -= OBSTACLE_PENALTY_MS;
+      setNotice("Missed it — +5s penalty!");
+      beep();
+    }
+  }
+
+  jumpBtn.addEventListener("click", function () {
+    if (!obstacleActive) return;
+    resolveObstacle(true);
+  });
+
+  function resetRunState() {
+    stepCount = 0;
+    won = false;
+    startTime = Date.now();
+    scheduleObstacles();
+    obstacleActive = false;
+    clearTimeout(obstacleTimeoutHandle);
+    jumpBtn.disabled = true;
+    jumpBtn.classList.remove("is-active");
+    winOverlay.classList.remove("show");
+    updateRoute();
+    timeStat.textContent = "0:00";
+  }
+  scheduleObstacles();
+
   function registerStep() {
     if (won) return;
     stepCount++;
@@ -854,6 +1073,7 @@
     if (stepCount % 50 === 0 && stepCount < STEP_GOAL) {
       announce(stepCount === STEP_GOAL / 2 ? stepCount + " steps. Halfway there!" : stepCount + " steps");
     }
+    maybeTriggerObstacle();
     if (stepCount >= STEP_GOAL) {
       win();
     }
@@ -867,6 +1087,10 @@
 
   function win() {
     won = true;
+    obstacleActive = false;
+    clearTimeout(obstacleTimeoutHandle);
+    jumpBtn.disabled = true;
+    jumpBtn.classList.remove("is-active");
     var elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
     var priorTimes = loadBestTimes();
@@ -967,6 +1191,16 @@
 
   function beginTracking() {
     primeAudio();
+    applyModeUI();
+
+    if (playMode === "tap") {
+      stageEntered = true;
+      setSensorBadge("Tap Mode — tap RUN for each step", "ok");
+      enterPlayStage();
+      setNotice("Tap RUN to move, JUMP when prompted!");
+      return;
+    }
+
     setNotice("Requesting motion access…");
     setSensorBadge("Waiting for first step…");
     var hasAPI = typeof window.DeviceMotionEvent !== "undefined";
@@ -1017,13 +1251,8 @@
     // Always resets the count (a clean restart), and if we're in
     // fallback, also makes a fresh attempt at motion permission/access —
     // this is the "recalibrate" button's dual purpose.
-    stepCount = 0;
-    won = false;
-    startTime = Date.now();
+    resetRunState();
     seedNext = true;
-    winOverlay.classList.remove("show");
-    updateRoute();
-    timeStat.textContent = "0:00";
 
     if (usingFallback) {
       setNotice("Retrying motion sensor…");
@@ -1061,7 +1290,8 @@
     stageSetup.classList.remove("active");
     stagePlay.classList.add("active");
     startTime = Date.now();
-    if (!usingFallback) {
+    scheduleObstacles();
+    if (!usingFallback && playMode !== "tap") {
       setSensorBadge("Sensor active — counting steps", "ok");
       setNotice("Start walking!");
     }
@@ -1073,6 +1303,7 @@
   // ---------------------------------------------------------------------
   document.getElementById("fallbackStepBtn").addEventListener("click", registerStep);
   document.getElementById("manualLink").addEventListener("click", registerStep);
+  runBtn.addEventListener("click", registerStep);
   document.addEventListener("keydown", function (e) {
     if (e.code === "Space" || e.key === " ") {
       e.preventDefault();
@@ -1083,22 +1314,10 @@
   document.getElementById("startBtn").addEventListener("click", beginTracking);
   document.getElementById("recalBtn").addEventListener("click", retrySensor);
   document.getElementById("restartBtn").addEventListener("click", function () {
-    stepCount = 0;
-    won = false;
-    startTime = Date.now();
-    winOverlay.classList.remove("show");
-    updateRoute();
-    timeStat.textContent = "0:00";
+    resetRunState();
     setNotice("Steps reset to zero.");
   });
-  document.getElementById("playAgainBtn").addEventListener("click", function () {
-    stepCount = 0;
-    won = false;
-    startTime = Date.now();
-    winOverlay.classList.remove("show");
-    updateRoute();
-    timeStat.textContent = "0:00";
-  });
+  document.getElementById("playAgainBtn").addEventListener("click", resetRunState);
 
   document.getElementById("debugToggle").addEventListener("change", function (e) {
     debugPanel.classList.toggle("show", e.target.checked);
