@@ -584,3 +584,54 @@ input.word-input--correct { color: var(--green); font-weight: 800; border-color:
   box-shadow: var(--shadow);
 }
 .confirm-box .btn { margin-top: 10px; }
+
+.room-badge {
+  appearance: none;
+  border: 1px solid rgba(226, 196, 101, 0.5);
+  background: rgba(226, 196, 101, 0.1);
+  color: var(--gold-400);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.room-badge:active { transform: scale(0.96); }
+
+.room-invite-box { text-align: center; }
+.room-invite-box h3 {
+  margin: 0 0 6px;
+  color: var(--navy-900);
+  font-family: Georgia, serif;
+}
+.room-invite-box p {
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  margin: 0 0 14px;
+}
+.room-invite-qr {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  max-width: 220px;
+  margin: 0 auto 14px;
+}
+.room-invite-qr svg { display: block; width: 100%; height: auto; }
+.room-invite-code {
+  font-family: "Courier New", monospace;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--navy-900);
+  background: rgba(212, 175, 55, 0.14);
+  border: 1.5px solid var(--gold-500);
+  border-radius: 10px;
+  padding: 8px;
+}
+.room-invite-hint {
+  font-size: 0.74rem !important;
+  margin: 10px 0 0 !important;
+}

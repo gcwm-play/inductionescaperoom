@@ -1,0 +1,73 @@
+/* Follow page — small additions on top of the shared ../styles.css */
+
+.follow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 20px 4px;
+  color: var(--paper);
+}
+.follow-header__team {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold-400);
+}
+.follow-header__switch {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  font-size: 0.76rem;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.follow-status {
+  margin: 0 20px 10px;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--gold-300, var(--gold-400));
+}
+.follow-status--live { background: rgba(30, 142, 90, 0.18); border-color: var(--green); color: #a9f0cf; }
+.follow-status--bad { background: rgba(194, 59, 59, 0.18); border-color: var(--red); color: #ffb3b3; }
+
+.follow-body { padding: 0 20px 24px; }
+
+.follow-join-wrap {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.follow-join-wrap h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--paper);
+  margin: 0;
+}
+.follow-join-wrap p { color: var(--ink-soft); margin: 0; }
+.follow-code-input {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: "Courier New", monospace;
+}
+
+.follow-waiting {
+  text-align: center;
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 10px 0;
+}
+
+.follow-dept-grid .dept-item { cursor: default; opacity: 0.9; }
+.follow-dept-grid input[type="checkbox"] { display: none; }

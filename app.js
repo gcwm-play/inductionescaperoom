@@ -60,6 +60,11 @@
       startedAt: null,
       completedAt: null,
       teamName: "",
+      // Set once the team starts (see createRoomForTeam). Lets teammates
+      // follow along live on their own phones — see room-sync.js and the
+      // /follow/ page. null/absent just means nobody's invited anyone;
+      // the game plays exactly as before either way.
+      roomCode: null,
       progressData: {
         stage2: { solved: [false, false], inputs: ["", ""] },
         stage3: {
@@ -142,8 +147,46 @@
     if (view >= 9 && !state.completedAt) state.completedAt = Date.now();
     state.currentView = view;
     save();
+    syncRoomStage(view);
     render();
     window.scrollTo(0, 0);
+  }
+
+  // ---------------------------------------------------------------------
+  // Room sync — lets teammates follow the leader's progress live on their
+  // own phones (see room-sync.js / /follow/). Every call here is
+  // fire-and-forget: a flaky connection on the leader's device must never
+  // block or break local gameplay, which always works exactly as before
+  // regardless of whether a room exists or the network is up.
+  // ---------------------------------------------------------------------
+  function syncRoomStage(view) {
+    if (!state.roomCode || !window.CPFRoomSync) return;
+    window.CPFRoomSync.advanceStage(state.roomCode, view);
+  }
+
+  // Creates a room the first time a team starts (view 0 -> 1), so
+  // teammates can scan/type a code to follow along. Runs in parallel with
+  // the (synchronous, local-only) stage unlock that already happens on
+  // the Start click — nothing about local play waits on this.
+  function createRoomForTeam() {
+    if (state.roomCode || !window.CPFRoomSync) return;
+    window.CPFRoomSync.createRoom(state.teamName)
+      .then(function (code) {
+        state.roomCode = code;
+        save();
+        // The room doc is created at stageIndex 0, but by the time this
+        // promise resolves the player has likely already moved past
+        // Welcome (unlock(1) runs synchronously right after this call
+        // kicks off, well before the network round-trip finishes) — that
+        // transition's own syncRoomStage() call silently no-ops without a
+        // roomCode yet. Catch up to wherever we actually are now so a
+        // follower joining right away doesn't miss Stage 1 entirely.
+        syncRoomStage(state.currentView);
+        render();
+      })
+      .catch(function (e) {
+        console.warn("room-sync: createRoom failed, continuing without it", e);
+      });
   }
 
   // ---------------------------------------------------------------------
@@ -289,6 +332,9 @@
     var brandTapTarget = document.getElementById("brandTapTarget");
     if (brandTapTarget) brandTapTarget.addEventListener("click", handleBrandTap);
 
+    var roomBadgeBtn = document.getElementById("roomBadgeBtn");
+    if (roomBadgeBtn) roomBadgeBtn.addEventListener("click", openRoomInviteOverlay);
+
     try {
       switch (view) {
         case 0: renderWelcome(wrap); break;
@@ -358,12 +404,17 @@
     return '<button class="read-aloud-btn" id="readAloudBtn" type="button" aria-label="Read this page aloud">🔊</button>';
   }
 
+  function roomBadgeHtml() {
+    if (!state.roomCode) return "";
+    return '<button class="room-badge" id="roomBadgeBtn" type="button">👥 ' + esc(state.roomCode) + "</button>";
+  }
+
   function renderTopbar(view) {
     var brandLeft = '<span class="topbar__brand-left" id="brandTapTarget"><span class="badge">C</span> ' + esc(C.meta.orgName) + "</span>";
     if (view === 0) {
       return (
         '<div class="topbar">' +
-        '<div class="topbar__brand">' + brandLeft + readAloudButtonHtml() + "</div>" +
+        '<div class="topbar__brand">' + brandLeft + roomBadgeHtml() + readAloudButtonHtml() + "</div>" +
         "</div>"
       );
     }
@@ -377,11 +428,45 @@
     var caption = view >= 9 ? "All stages complete" : "Stage " + Math.min(currentStageNumber(view), 5) + " of 5";
     return (
       '<div class="topbar">' +
-      '<div class="topbar__brand">' + brandLeft + readAloudButtonHtml() + "</div>" +
+      '<div class="topbar__brand">' + brandLeft + roomBadgeHtml() + readAloudButtonHtml() + "</div>" +
       '<div class="progress-track">' + dots + "</div>" +
       '<div class="progress-caption">' + caption + "</div>" +
       "</div>"
     );
+  }
+
+  // ---------------------------------------------------------------------
+  // Room invite overlay — shows the room code plus a QR encoding the
+  // /follow/ page link, so teammates can scan (or type the code by hand)
+  // to mirror the leader's progress live, read-only, on their own phone.
+  // ---------------------------------------------------------------------
+  function openRoomInviteOverlay() {
+    var followUrl = new URL("follow/index.html?room=" + encodeURIComponent(state.roomCode), window.location.href).toString();
+    var qrSvg = "";
+    try {
+      if (window.CPFQRCode) {
+        var qr = window.CPFQRCode(0, "M");
+        qr.addData(followUrl);
+        qr.make();
+        qrSvg = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+      }
+    } catch (e) {}
+
+    var overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML =
+      '<div class="confirm-box room-invite-box">' +
+      "<h3>Invite your team</h3>" +
+      "<p>Teammates can scan this to follow your progress live on their own phone — it's read-only, they don't need to solve anything there.</p>" +
+      (qrSvg ? '<div class="room-invite-qr">' + qrSvg + "</div>" : "") +
+      '<div class="room-invite-code">' + esc(state.roomCode) + "</div>" +
+      '<p class="room-invite-hint">No camera handy? They can open the /follow/ page and type this code in by hand instead.</p>' +
+      '<button class="btn btn--primary" data-close>Done</button>' +
+      "</div>";
+    document.body.appendChild(overlay);
+    overlay.querySelector("[data-close]").addEventListener("click", function () {
+      document.body.removeChild(overlay);
+    });
   }
 
   function currentStageNumber(view) {
@@ -422,6 +507,7 @@
         shakeEl(document.getElementById("teamNameInput"));
         return;
       }
+      createRoomForTeam();
       unlock(Math.max(1, state.maxUnlocked));
     });
     document.getElementById("resetLink").addEventListener("click", function () {
