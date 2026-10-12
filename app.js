@@ -791,6 +791,12 @@
       if (isCorrect) {
         pd.deptSolved = true;
         save();
+        // Dept challenge solving doesn't advance the main view (still 5 —
+        // both halves of Stage 3 share it), so followers have no signal
+        // that the tile phrases should appear yet. 5.5 is a synced
+        // sub-stage just for that — same stageIndex field, no rules
+        // change needed, and it's never used for local navigation here.
+        syncRoomStage(5.5);
         renderStage3(wrap);
       } else {
         pd.deptAttempts += 1;

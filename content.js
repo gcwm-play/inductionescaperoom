@@ -260,6 +260,12 @@ window.CPF_CONTENT = {
         "Scan the QR code above on a separate phone.",
         "Approach the facilitators for the device and follow the instructions on the other device.",
       ],
+      // Relative path (from the site root) to the same page the QR above
+      // links to. The /follow/ page uses this to show teammates a direct
+      // "Open" button instead of the QR — they're already on their own
+      // phone, no need to scan their own screen.
+      link: "tilt-maze/index.html",
+      followPrompt: "You're already on your phone — just tap below to open the Code Maze directly.",
       inputLabel: "Your answer",
       inputPlaceholder: "",
       answer: "30",

@@ -71,3 +71,13 @@
 
 .follow-dept-grid .dept-item { cursor: default; opacity: 0.9; }
 .follow-dept-grid input[type="checkbox"] { display: none; }
+
+/* .btn is written for <button>; this covers what plain anchors need to
+   look identical (block layout, centered text, no underline). */
+a.follow-direct-link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+  margin-top: 10px;
+}

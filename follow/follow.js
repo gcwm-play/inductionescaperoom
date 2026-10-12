@@ -15,11 +15,52 @@
   var FOLLOW_KEY = "cpf_follow_room_v1";
   var app = document.getElementById("app");
   var unsubscribe = null;
+  var lastSeenStageIndex = null;
 
   function esc(str) {
     var d = document.createElement("div");
     d.textContent = str;
     return d.innerHTML;
+  }
+
+  // ---------------------------------------------------------------------
+  // Sound cue — a short chime whenever the room's stage changes, so a
+  // teammate with the phone in their pocket notices there's an update.
+  // Mobile browsers won't play audio before a real user gesture, so this
+  // is primed on the first tap/click anywhere on the page (covers both
+  // the "type a code and tap Follow" path and arriving via a scanned QR
+  // link, where no button click happens before the first snapshot).
+  // Fire-and-forget like everything else here: if it never gets primed
+  // (no interaction at all), the page just stays silent — the visual
+  // "Live" status and stage content are still the real source of truth.
+  // ---------------------------------------------------------------------
+  var audioCtx = null;
+  function primeAudio() {
+    try {
+      var Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtx && Ctor) audioCtx = new Ctor();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    } catch (e) {}
+  }
+  document.addEventListener("click", primeAudio, { once: true });
+  document.addEventListener("touchstart", primeAudio, { once: true });
+
+  function playStageChime() {
+    if (!audioCtx) return;
+    try {
+      var now = audioCtx.currentTime;
+      [660, 990].forEach(function (freq, i) {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.value = 0.18;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + i * 0.1);
+        osc.stop(now + i * 0.1 + 0.15);
+      });
+    } catch (e) {}
   }
 
   // Trimmed copy of app.js's shape-cipher helpers — needed to render
@@ -118,13 +159,20 @@
   }
 
   function startFollowing(code) {
+    primeAudio();
     rememberRoomCode(code);
     if (unsubscribe) unsubscribe();
+    lastSeenStageIndex = null; // reset so the first snapshot for this room never chimes
     renderShell(null, 0, "connecting");
     unsubscribe = window.CPFRoomSync.subscribeRoom(
       code,
       function (data) {
-        renderShell(data, data.stageIndex || 0, "live");
+        var stageIndex = data.stageIndex || 0;
+        if (lastSeenStageIndex !== null && stageIndex !== lastSeenStageIndex) {
+          playStageChime();
+        }
+        lastSeenStageIndex = stageIndex;
+        renderShell(data, stageIndex, "live");
       },
       function () {
         renderShell(null, 0, "notfound");
@@ -187,7 +235,8 @@
       case 2: return renderStage1Success(wrap);
       case 3: return renderGate(wrap);
       case 4: return renderStage2(wrap);
-      case 5: return renderStage3(wrap);
+      case 5: return renderStage3Dept(wrap);
+      case 5.5: return renderStage3Tiles(wrap);
       case 6: return renderStage3b(wrap);
       case 7: return renderStage4(wrap);
       case 8: return renderStage5(wrap);
@@ -270,7 +319,12 @@
     wrap.innerHTML = card("<h2>" + esc(s.title) + "</h2><p>" + esc(s.intro) + "</p>") + emailsHtml;
   }
 
-  function renderStage3(wrap) {
+  // Stage 3 is split into two synced sub-stages (5 and 5.5, see app.js's
+  // syncRoomStage(5.5) call) so the tile phrases only appear for
+  // followers once the leader has actually solved the department
+  // challenge — matching what the leader's own screen shows at each
+  // point (it swaps from the dept grid to the tiles too, never both).
+  function renderStage3Dept(wrap) {
     var s = C.stage3;
     var dc = s.deptChallenge;
     var deptHtml = dc.departments
@@ -278,7 +332,6 @@
       .join("");
     var lt = s.logoTask;
     var cluesHtml = lt.clues.map(function (c) { return '<div class="clue-item">' + esc(c) + "</div>"; }).join("");
-    var tilesHtml = s.tiles.map(function (t) { return '<button class="tile" disabled>' + esc(t) + "</button>"; }).join("");
     wrap.innerHTML =
       card(
         (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
@@ -294,11 +347,18 @@
         '<div class="clue-list">' + cluesHtml + "</div>" +
         "<p>" + esc(lt.note) + "</p>",
         true
-      ) +
-      card(
-        '<div class="field-label">Phrases to piece together (not shown in order)</div>' +
-        '<div class="tile-row">' + tilesHtml + "</div>"
       );
+  }
+
+  function renderStage3Tiles(wrap) {
+    var s = C.stage3;
+    var tilesHtml = s.tiles.map(function (t) { return '<button class="tile" disabled>' + esc(t) + "</button>"; }).join("");
+    wrap.innerHTML = card(
+      "<h2>" + esc(s.title) + "</h2>" +
+      "<p>" + esc(s.intro) + "</p>" +
+      '<div class="field-label">Phrases to piece together (not shown in order)</div>' +
+      '<div class="tile-row">' + tilesHtml + "</div>"
+    );
   }
 
   function renderStage3b(wrap) {
@@ -311,12 +371,23 @@
 
   function renderStage4(wrap) {
     var s = C.stage4;
+    // Unlike the leader's screen, a challenge with a "link" (Stage 4B)
+    // gets a direct "Open" button here instead of its QR — followers are
+    // already on their own phone, so scanning a code off their own
+    // screen would be a pointless extra step.
     function challengeCard(challenge) {
-      var qrHtml = challenge.qrImage ? '<img class="challenge-qr" src="../' + esc(challenge.qrImage) + '" alt="" />' : "";
+      if (challenge.link) {
+        var href = "../" + challenge.link;
+        return card(
+          '<span class="eyebrow">' + esc(challenge.label) + "</span>" +
+          "<p>" + esc(challenge.followPrompt || challenge.prompt || "") + "</p>" +
+          '<a class="btn btn--primary follow-direct-link" href="' + esc(href) + '" target="_blank" rel="noopener">Open the Code Maze ↗</a>'
+        );
+      }
       var bodyHtml = challenge.steps
         ? "<ol>" + challenge.steps.map(function (st) { return "<li>" + esc(st) + "</li>"; }).join("") + "</ol>"
         : "<p>" + esc(challenge.prompt) + "</p>";
-      return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + qrHtml + bodyHtml);
+      return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml);
     }
     wrap.innerHTML =
       card("<h2>" + esc(s.title) + "</h2><p>" + esc(s.intro) + "</p>") +
