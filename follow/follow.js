@@ -342,7 +342,7 @@
     wrap.innerHTML =
       card(
         (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
-        stageHeading(s.icon, s.title) +
+        stageHeading(s.icon, dc.title || s.title) +
         "<p>" + esc(dc.question) + "</p>" +
         "<p>" + esc(dc.instructions) + "</p>" +
         '<div class="dept-grid follow-dept-grid">' + deptHtml + "</div>"

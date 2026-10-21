@@ -187,8 +187,12 @@ window.CPF_CONTENT = {
     // -----------------------------------------------------------------
     deptChallenge: {
       eyebrow: "Stage 3A",
+      // Its own heading — distinct from stage3.title ("Stage 3 - Rebuild
+      // the Mission Statement", which describes the tile puzzle that
+      // comes after this). This screen is the department picker.
+      title: "Stage 3A - Find the Real Departments",
       question: "You'll have to piece together the Board's Mission.",
-      instructions: "Fragments of the Board's Mission are hidden in the folders below, but you'll have to select only the folders that are actual departments in CPF Board.",
+      instructions: "Fragments of the Board's Mission are hidden in the folders below, but you'll have to select only the folders that are actual departments in CPF Board. Exactly 5 of these are real — the rest are decoys.",
       submitButton: "Submit Selection",
       failureMessage: "That's not right — recheck your selections and try again.",
       // Shown appended to the failure message once attempts reach hintAfterAttempts.
