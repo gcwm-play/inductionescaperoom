@@ -51,7 +51,7 @@ window.CPF_CONTENT = {
     icon: "🔐",
     title: "Stage 1 - Find the passcode, unlock the lock!",
     intro:
-      "Every CPF Board record starts with a date. Solve the puzzle below to decode a 4 digit code and open the physical lock given to your team:",
+      "Solve the puzzle below to decode a 4 digit code and open the physical lock given to your team:",
     // Worked examples teaching the cipher rule (shape -> number of sides).
     // Shape keys must match SHAPES in app.js: circle, triangle, square, pentagon.
     legend: [
@@ -90,7 +90,6 @@ window.CPF_CONTENT = {
     icon: "🔑",
     heading: "Password Required",
     body: "Enter the password you found inside the lock to reconnect to the network drive.",
-    context: "This proves you're cleared to pull archived records, not just anyone poking around the network — IT won't let you back in without it.",
     inputLabel: "Password",
     inputPlaceholder: "Enter password",
     // Must match the note the facilitator places inside the physical lock.

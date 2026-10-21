@@ -607,7 +607,6 @@
       '<div class="card">' +
       stageHeading(g.icon, g.heading) +
       "<p>" + esc(g.body) + "</p>" +
-      (g.context ? "<p>" + esc(g.context) + "</p>" : "") +
       '<label class="field-label" for="gateInput">' + esc(g.inputLabel) + "</label>" +
       '<input type="text" id="gateInput" placeholder="' + esc(g.inputPlaceholder) + '" autocomplete="off" autocapitalize="characters" />' +
       '<div class="error-text" id="gateError"></div>' +

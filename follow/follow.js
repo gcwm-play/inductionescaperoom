@@ -305,7 +305,6 @@
     wrap.innerHTML = card(
       stageHeading(g.icon, g.heading) +
       "<p>" + esc(g.body) + "</p>" +
-      (g.context ? "<p>" + esc(g.context) + "</p>" : "") +
       '<p class="follow-waiting">Waiting for the password from the lock…</p>'
     );
   }
