@@ -249,6 +249,12 @@
     return '<div class="card' + (navy ? " card--navy" : "") + '">' + innerHtml + "</div>";
   }
 
+  // Mirrors app.js's stageHeading() exactly, same content.js icon fields,
+  // so a stage looks identical here as it does on the leader's phone.
+  function stageHeading(icon, text) {
+    return "<h2>" + (icon ? '<span class="stage-icon" aria-hidden="true">' + icon + "</span> " : "") + esc(text) + "</h2>";
+  }
+
   function renderWelcome(wrap) {
     var w = C.welcome;
     wrap.innerHTML = card(
@@ -274,7 +280,7 @@
       })
       .join("");
     wrap.innerHTML = card(
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       '<div class="shape-legend">' + legendHtml + "</div>" +
       '<div class="shape-puzzle">' + groupsHtml + '<div class="shape-op shape-op--query">?</div></div>' +
@@ -286,8 +292,9 @@
     var s = C.stage1;
     var digits = s.lockCode.split("").map(function (d) { return '<div class="lock-code__digit">' + esc(d) + "</div>"; }).join("");
     wrap.innerHTML = card(
-      "<h2>" + esc(s.successHeading) + "</h2>" +
+      stageHeading(s.icon, s.successHeading) +
       '<div class="lock-code">' + digits + "</div>" +
+      (s.foundingReveal ? '<p class="success-banner">' + esc(s.foundingReveal) + "</p>" : "") +
       "<p>" + esc(s.lockInstruction) + "</p>",
       true
     );
@@ -296,8 +303,9 @@
   function renderGate(wrap) {
     var g = C.gate;
     wrap.innerHTML = card(
-      "<h2>" + esc(g.heading) + "</h2>" +
+      stageHeading(g.icon, g.heading) +
       "<p>" + esc(g.body) + "</p>" +
+      (g.context ? "<p>" + esc(g.context) + "</p>" : "") +
       '<p class="follow-waiting">Waiting for the password from the lock…</p>'
     );
   }
@@ -316,7 +324,7 @@
         );
       })
       .join("");
-    wrap.innerHTML = card("<h2>" + esc(s.title) + "</h2><p>" + esc(s.intro) + "</p>") + emailsHtml;
+    wrap.innerHTML = card(stageHeading(s.icon, s.title) + "<p>" + esc(s.intro) + "</p>") + emailsHtml;
   }
 
   // Stage 3 is split into two synced sub-stages (5 and 5.5, see app.js's
@@ -335,7 +343,7 @@
     wrap.innerHTML =
       card(
         (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
-        "<h2>" + esc(s.title) + "</h2>" +
+        stageHeading(s.icon, s.title) +
         "<p>" + esc(dc.question) + "</p>" +
         "<p>" + esc(dc.instructions) + "</p>" +
         '<div class="dept-grid follow-dept-grid">' + deptHtml + "</div>"
@@ -353,8 +361,13 @@
   function renderStage3Tiles(wrap) {
     var s = C.stage3;
     var tilesHtml = s.tiles.map(function (t) { return '<button class="tile" disabled>' + esc(t) + "</button>"; }).join("");
+    var correctDeptCodes = s.deptChallenge.departments
+      .filter(function (d) { return d.correct; })
+      .map(function (d) { return d.code; })
+      .join(", ");
     wrap.innerHTML = card(
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
+      '<div class="success-banner">' + esc(s.deptSuccessLabel) + " " + esc(correctDeptCodes) + "</div>" +
       "<p>" + esc(s.intro) + "</p>" +
       '<div class="field-label">Phrases to piece together (not shown in order)</div>' +
       '<div class="tile-row">' + tilesHtml + "</div>"
@@ -362,8 +375,9 @@
   }
 
   function renderStage3b(wrap) {
+    var s = C.stage3b;
     wrap.innerHTML = card(
-      "<h2>" + esc(C.stage3b.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       '<p class="follow-waiting">Your team is photographing their logo drawing now…</p>',
       true
     );
@@ -390,7 +404,7 @@
       return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml);
     }
     wrap.innerHTML =
-      card("<h2>" + esc(s.title) + "</h2><p>" + esc(s.intro) + "</p>") +
+      card(stageHeading(s.icon, s.title) + "<p>" + esc(s.intro) + "</p>") +
       challengeCard(s.challengeA) +
       challengeCard(s.challengeB);
   }
@@ -398,7 +412,7 @@
   function renderStage5(wrap) {
     var s = C.stage5;
     wrap.innerHTML = card(
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       "<p>" + esc(s.hint) + "</p>" +
       '<div class="hint-box">' + esc(s.colorHint) + "</div>"
@@ -406,7 +420,8 @@
   }
 
   function renderFinale(wrap) {
-    wrap.innerHTML = card("<h2>🎉 " + esc(C.finale.heading) + "</h2><p>" + esc(C.finale.subheading) + "</p>", true);
+    var f = C.finale;
+    wrap.innerHTML = card(stageHeading(f.icon, f.heading) + "<p>" + esc(f.subheading) + "</p>", true);
   }
 
   init();

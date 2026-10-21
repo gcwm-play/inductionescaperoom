@@ -46,9 +46,12 @@ window.CPF_CONTENT = {
   // STAGE 1 — Find the Board's birthday → physical 4-digit lock code
   // ---------------------------------------------------------------------
   stage1: {
+    // Shown next to the stage title (here and on the /follow/ page) so
+    // teams can tell stages apart at a glance, not just by reading text.
+    icon: "🔐",
     title: "Stage 1 - Find the passcode, unlock the lock!",
     intro:
-      "Solve the puzzle below to get a 4 digit code to open the physical lock given to your team:",
+      "Every CPF Board record starts with a date. Solve the puzzle below to decode a 4 digit code and open the physical lock given to your team:",
     // Worked examples teaching the cipher rule (shape -> number of sides).
     // Shape keys must match SHAPES in app.js: circle, triangle, square, pentagon.
     legend: [
@@ -70,6 +73,10 @@ window.CPF_CONTENT = {
     lockCode: "0107",
     successHeading: "Code cracked.",
     successBody: "Use the 4 digit code to open the lock given to you.",
+    // The payoff for solving the cipher — ties the abstract 4-digit code
+    // back to a real CPF Board fact instead of just being a key for a
+    // lock. Read as DDMM: 01-07 -> 1 July.
+    foundingReveal: "01-07, read as a date: that's 1 July 1955 — the day CPF Board was founded.",
     lockInstruction:
       "Dial 0 – 1 – 0 – 7 on the combination lock. Inside, you'll find a password.",
     continueButton: "I've opened the lock",
@@ -80,8 +87,10 @@ window.CPF_CONTENT = {
   // GATE — password recovered from the physical lock unlocks Stage 2
   // ---------------------------------------------------------------------
   gate: {
+    icon: "🔑",
     heading: "Password Required",
     body: "Enter the password you found inside the lock to reconnect to the network drive.",
+    context: "This proves you're cleared to pull archived records, not just anyone poking around the network — IT won't let you back in without it.",
     inputLabel: "Password",
     inputPlaceholder: "Enter password",
     // Must match the note the facilitator places inside the physical lock.
@@ -94,6 +103,7 @@ window.CPF_CONTENT = {
   // STAGE 2 — Two emails, acrostic first letters spell MISSION / VISION
   // ---------------------------------------------------------------------
   stage2: {
+    icon: "✉️",
     title: "Stage 2 - Recover the hidden word",
     intro: "Read each email below carefully. Something's hidden in each one.",
     errorMessage: "That's not the right word. Try again.",
@@ -138,9 +148,15 @@ window.CPF_CONTENT = {
   // STAGE 3 — Reassemble the Mission Statement
   // ---------------------------------------------------------------------
   stage3: {
+    icon: "🧩",
     title: "Stage 3 - Rebuild the Mission Statement",
     intro:
       "A fragment of Slide 1's mission statement was salvaged, but the phrases are out of order. Tap them in the correct sequence to rebuild it.",
+    // Shown once the dept challenge is solved, naming which codes were
+    // real (built from deptChallenge.departments, not hardcoded here, so
+    // it can't drift if that list changes) — a small payoff for getting
+    // it right instead of just moving straight on.
+    deptSuccessLabel: "Confirmed real CPF Board departments:",
     // Shown once, at the top of the first Stage 3 screen (the dept gate),
     // before either task's card.
     splitNotice: "This stage has 2 tasks — please split the work between your team members.",
@@ -219,9 +235,10 @@ window.CPF_CONTENT = {
   // STAGE 3B — Photograph the team's CPF Board logo drawing
   // ---------------------------------------------------------------------
   stage3b: {
+    icon: "📸",
     eyebrow: "Stage 3B",
     title: "Capture Your Team's Logo",
-    intro: "Take a photo of the CPF Board logo your team drew.",
+    intro: "Take a photo of the CPF Board logo your team drew — this goes straight onto the rebuilt Slide 1, hand-drawn and all.",
     permissionNote: "Tapping the button below will ask for camera access — allow it to continue.",
     captureButton: "Open Camera",
     retakeButton: "Retake Photo",
@@ -239,9 +256,10 @@ window.CPF_CONTENT = {
   // different teammates — Stage 5 unlocks only once BOTH are correct.
   // ---------------------------------------------------------------------
   stage4: {
+    icon: "🔢",
     title: "Stage 4 - The Numbers",
     intro:
-      "Slide 2 has missing figures. Split the challenges below between your team members. Solve each challenge and key in your answers to progress.",
+      "Slide 2 has missing figures, and numbers like these are exactly what President Tharman will ask about. Split the challenges below between your team members. Solve each challenge and key in your answers to progress.",
     summaryTemplate: "CPF Board serves {members} million members through over {projects} national projects.",
     continueButton: "Continue",
     challengeA: {
@@ -282,10 +300,11 @@ window.CPF_CONTENT = {
   // the app doesn't assume which field maps to which crossword word).
   // ---------------------------------------------------------------------
   stage5: {
+    icon: "🔤",
     title: "Stage 5 - Find the Key Words",
     intro:
       "Find the key words in our Vision. Approach the facilitator for the 3 crossword puzzle for your team to solve to unlock the 3 key words in CPF Board's Vision.",
-    hint: "Solve the crossword puzzle completely, and unscramble the highlighted boxes.",
+    hint: "Solve the crossword puzzle completely, and unscramble the highlighted boxes. These 3 words are the actual pillars of CPF Board's Vision statement — not placeholders.",
     colorHint: "Hint: Get a word right and it'll turn green.",
     wordLabels: ["Word 1", "Word 2", "Word 3"],
     answers: ["TRUSTED", "RESPECTED", "COMMITTED"],
@@ -296,6 +315,7 @@ window.CPF_CONTENT = {
   // FINALE — Reconstructed slides
   // ---------------------------------------------------------------------
   finale: {
+    icon: "🎉",
     heading: "Slides Reconstructed",
     subheading: "Ready for President Tharman's briefing.",
     defaultTeamName: "Your Team",

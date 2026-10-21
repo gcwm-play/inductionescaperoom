@@ -308,6 +308,12 @@
     });
   }
 
+  // A stage's icon (content.js) renders next to its heading so teams can
+  // tell puzzles apart at a glance, not just by reading the title text.
+  function stageHeading(icon, text) {
+    return "<h2>" + (icon ? '<span class="stage-icon" aria-hidden="true">' + icon + "</span> " : "") + esc(text) + "</h2>";
+  }
+
   function shakeEl(el) {
     el.classList.remove("shake");
     void el.offsetWidth;
@@ -542,7 +548,7 @@
 
     wrap.innerHTML =
       '<div class="card">' +
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       '<div class="shape-legend">' + legendHtml + "</div>" +
       '<div class="shape-puzzle">' + groupsHtml + '<div class="shape-op shape-op--query">?</div></div>' +
@@ -579,9 +585,10 @@
 
     wrap.innerHTML =
       '<div class="card card--navy">' +
-      "<h2>" + esc(s.successHeading) + "</h2>" +
+      stageHeading(s.icon, s.successHeading) +
       "<p>" + esc(s.successBody) + "</p>" +
       '<div class="lock-code">' + digits + "</div>" +
+      (s.foundingReveal ? '<p class="success-banner">' + esc(s.foundingReveal) + "</p>" : "") +
       "<p>" + esc(s.lockInstruction) + "</p>" +
       '<button class="btn btn--primary" id="toGate">' + esc(s.continueButton) + "</button>" +
       "</div>";
@@ -598,8 +605,9 @@
     var g = C.gate;
     wrap.innerHTML =
       '<div class="card">' +
-      "<h2>" + esc(g.heading) + "</h2>" +
+      stageHeading(g.icon, g.heading) +
       "<p>" + esc(g.body) + "</p>" +
+      (g.context ? "<p>" + esc(g.context) + "</p>" : "") +
       '<label class="field-label" for="gateInput">' + esc(g.inputLabel) + "</label>" +
       '<input type="text" id="gateInput" placeholder="' + esc(g.inputPlaceholder) + '" autocomplete="off" autocapitalize="characters" />' +
       '<div class="error-text" id="gateError"></div>' +
@@ -650,7 +658,7 @@
       var allSolved = pd.solved.every(Boolean);
       wrap.innerHTML =
         '<div class="card">' +
-        "<h2>" + esc(s.title) + "</h2>" +
+        stageHeading(s.icon, s.title) +
         "<p>" + esc(s.intro) + "</p>" +
         '<div class="email-list">' + items + "</div>" +
         (allSolved
@@ -760,7 +768,7 @@
       '<div class="notice-box">' + esc(s.splitNotice) + "</div>" +
       '<div class="card">' +
       (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(dc.question) + "</p>" +
       "<p>" + esc(dc.instructions) + "</p>" +
       '<div class="dept-grid">' + itemsHtml + "</div>" +
@@ -843,9 +851,15 @@
     var isComplete = placedSet.length === s.tiles.length;
     var isCorrect = isComplete && placedSet.every(function (v, i) { return v === i; });
 
+    var correctDeptCodes = s.deptChallenge.departments
+      .filter(function (d) { return d.correct; })
+      .map(function (d) { return d.code; })
+      .join(", ");
+
     wrap.innerHTML =
       '<div class="card">' +
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
+      '<div class="success-banner">' + esc(s.deptSuccessLabel) + " " + esc(correctDeptCodes) + "</div>" +
       "<p>" + esc(s.intro) + "</p>" +
       '<div class="field-label">Your sentence</div>' +
       '<div class="tile-row tile-row--target" id="targetRow">' + (placedHtml || '<span style="color:#8a92a6;font-size:0.85rem">Tap phrases below to build the sentence</span>') + "</div>" +
@@ -929,7 +943,7 @@
     wrap.innerHTML =
       '<div class="card">' +
       (s.eyebrow ? '<span class="eyebrow">' + esc(s.eyebrow) + "</span>" : "") +
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       previewHtml +
       (capturedPhoto ? "" : '<p style="font-size:0.82rem">' + esc(s.permissionNote) + "</p>") +
@@ -1010,7 +1024,7 @@
 
     wrap.innerHTML =
       '<div class="card">' +
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       "</div>" +
       challengeCard("s4a", s.challengeA, aCorrect, pd.a) +
@@ -1087,7 +1101,7 @@
 
     wrap.innerHTML =
       '<div class="card">' +
-      "<h2>" + esc(s.title) + "</h2>" +
+      stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       "<p>" + esc(s.hint) + "</p>" +
       fields +
@@ -1164,7 +1178,7 @@
       "</div>" +
       "</div>" +
       '<div class="card card--navy">' +
-      "<h2>" + esc(f.completionHeading) + "</h2>" +
+      stageHeading(f.icon, f.completionHeading) +
       "<p>" + esc(f.completionBody) + "</p>" +
       '<button class="btn btn--primary" id="restartBtn">' + esc(f.restartButton) + "</button>" +
       "</div>";

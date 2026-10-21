@@ -147,6 +147,11 @@ h1 { font-size: 1.5rem; }
 h2 { font-size: 1.25rem; }
 h3 { font-size: 1.05rem; }
 
+/* The per-stage icon (content.js) next to a heading — a quick visual
+   tag so a team can tell which puzzle they're on at a glance, distinct
+   from the stages around it, not just by reading the title text. */
+.stage-icon { font-size: 1.1em; margin-right: 2px; }
+
 p { line-height: 1.55; margin: 0 0 10px; color: var(--ink-soft); }
 .card--navy p { color: rgba(247, 244, 236, 0.85); }
 
