@@ -195,9 +195,10 @@ window.CPF_CONTENT = {
       instructions: "Fragments of the Board's Mission are hidden in the folders below, but you'll have to select only the folders that are actual departments in CPF Board. Exactly 5 of these are real — the rest are decoys.",
       submitButton: "Submit Selection",
       failureMessage: "That's not right — recheck your selections and try again.",
-      // Shown appended to the failure message once attempts reach hintAfterAttempts.
-      hintMessage: "Hint: exactly 5 of these are genuine CPF departments.",
-      hintAfterAttempts: 3,
+      // Shown after every wrong submission, filled in with how many of
+      // THIS attempt's selections were actually correct — narrows the
+      // search without naming which ones, unlike the old fixed hint.
+      failureCountTemplate: "{correct} of your {selected} selected departments are correct.",
       departments: [
         { code: "PCM", correct: true },
         { code: "HCA", correct: true },

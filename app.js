@@ -70,7 +70,6 @@
         stage3: {
           deptSolved: false,
           deptSelected: [],
-          deptAttempts: 0,
           deptShuffled: null,
           placedOrder: [],
           shuffled: null,
@@ -806,10 +805,10 @@
         syncRoomStage(5.5);
         renderStage3(wrap);
       } else {
-        pd.deptAttempts += 1;
-        save();
-        var msg = dc.failureMessage;
-        if (pd.deptAttempts >= dc.hintAfterAttempts) msg += " " + dc.hintMessage;
+        var correctCount = pd.deptSelected.filter(function (i) { return correct.indexOf(i) !== -1; }).length;
+        var msg = dc.failureMessage + " " + dc.failureCountTemplate
+          .replace("{correct}", correctCount)
+          .replace("{selected}", pd.deptSelected.length);
         document.getElementById("deptError").textContent = msg;
         shakeEl(wrap.querySelector(".card"));
       }
