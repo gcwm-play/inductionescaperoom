@@ -238,7 +238,7 @@
       case 5: return renderStage3Dept(wrap);
       case 5.5: return renderStage3Tiles(wrap);
       case 6: return renderStage3b(wrap);
-      case 7: return renderStage4(wrap);
+      case 7: case 7.1: case 7.2: case 7.3: return renderStage4(wrap, view);
       case 8: return renderStage5(wrap);
       case 9: return renderFinale(wrap);
       default: return renderWelcome(wrap);
@@ -382,30 +382,47 @@
     );
   }
 
-  function renderStage4(wrap) {
+  // view is 7 (neither solved), 7.1 (A only), 7.2 (B only), or 7.3
+  // (both) — see app.js's stage4SubIndex(). The actual correct values
+  // are already static in content.js (challengeA/B.answer), same as
+  // Stage 1's lock code or Stage 5's words, so there's nothing per-team
+  // to sync beyond which half is solved — the reveal itself just reads
+  // from content.js once that's known.
+  function renderStage4(wrap, view) {
     var s = C.stage4;
+    var aOk = view === 7.1 || view === 7.3;
+    var bOk = view === 7.2 || view === 7.3;
+
     // Unlike the leader's screen, a challenge with a "link" (Stage 4B)
     // gets a direct "Open" button here instead of its QR — followers are
     // already on their own phone, so scanning a code off their own
     // screen would be a pointless extra step.
-    function challengeCard(challenge) {
+    function challengeCard(challenge, solved) {
+      var revealHtml = solved ? '<div class="success-banner">Confirmed: ' + esc(challenge.answer) + "</div>" : "";
       if (challenge.link) {
         var href = "../" + challenge.link;
         return card(
           '<span class="eyebrow">' + esc(challenge.label) + "</span>" +
           "<p>" + esc(challenge.followPrompt || challenge.prompt || "") + "</p>" +
-          '<a class="btn btn--primary follow-direct-link" href="' + esc(href) + '" target="_blank" rel="noopener">Open the Code Maze ↗</a>'
+          '<a class="btn btn--primary follow-direct-link" href="' + esc(href) + '" target="_blank" rel="noopener">Open the Code Maze ↗</a>' +
+          revealHtml
         );
       }
       var bodyHtml = challenge.steps
         ? "<ol>" + challenge.steps.map(function (st) { return "<li>" + esc(st) + "</li>"; }).join("") + "</ol>"
         : "<p>" + esc(challenge.prompt) + "</p>";
-      return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml);
+      return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml + revealHtml);
     }
+
+    var summary = s.summaryTemplate
+      .replace("{members}", aOk ? s.challengeA.answer : "_._")
+      .replace("{projects}", bOk ? s.challengeB.answer : "__");
+
     wrap.innerHTML =
       card(stageHeading(s.icon, s.title) + "<p>" + esc(s.intro) + "</p>") +
-      challengeCard(s.challengeA) +
-      challengeCard(s.challengeB);
+      challengeCard(s.challengeA, aOk) +
+      challengeCard(s.challengeB, bOk) +
+      card('<div class="number-summary">' + esc(summary) + "</div>", true);
   }
 
   function renderStage5(wrap) {

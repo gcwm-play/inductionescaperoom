@@ -987,6 +987,20 @@
   // ---------------------------------------------------------------------
   // Stage 4 — numbers
   // ---------------------------------------------------------------------
+  // Stage 4's two challenges are solved independently, in either order,
+  // by different teammates — unlike Stage 3's single 5/5.5 split this
+  // needs 4 distinct states. Reuses the same stageIndex field as every
+  // other sync point (no Firestore rules change needed): 7 neither
+  // solved, 7.1 only A, 7.2 only B, 7.3 both (the moment the leader's
+  // own summary line is fully filled in, before they've even tapped
+  // Continue to advance to 8).
+  function stage4SubIndex(aOk, bOk) {
+    if (aOk && bOk) return 7.3;
+    if (aOk) return 7.1;
+    if (bOk) return 7.2;
+    return 7;
+  }
+
   function renderStage4(wrap) {
     var s = C.stage4;
     var pd = state.progressData.stage4;
@@ -1040,6 +1054,7 @@
         pd.a = val;
         save();
         if (val !== "" && !isNaN(parseFloat(val)) && parseFloat(val) === parseFloat(s.challengeA.answer)) {
+          syncRoomStage(stage4SubIndex(true, bCorrect));
           renderStage4(wrap);
         } else {
           document.getElementById("s4aError").textContent = s.challengeA.errorMessage;
@@ -1054,6 +1069,7 @@
         pd.b = val;
         save();
         if (val !== "" && !isNaN(parseInt(val, 10)) && parseInt(val, 10) === parseInt(s.challengeB.answer, 10)) {
+          syncRoomStage(stage4SubIndex(aCorrect, true));
           renderStage4(wrap);
         } else {
           document.getElementById("s4bError").textContent = s.challengeB.errorMessage;
