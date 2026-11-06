@@ -11,9 +11,11 @@
  * CPFRoomSync at that point, only from later event handlers.
  *
  * Firestore document shape, collection "rooms", doc id = room code:
- *   { teamName: string, stageIndex: number, createdAt, updatedAt }
+ *   { teamName: string, stageIndex: number, createdAt, updatedAt,
+ *     solved?: { email0, email1, s4a, s4b: bool, s5words: string[] } }
  * Deliberately minimal — puzzle text itself lives in content.js on every
- * device already; only "which stage is the team on" needs to sync.
+ * device already; only "which stage is the team on" (and which answers are already
+ * solved, so followers can see them) needs to sync.
  */
 import {
   initializeApp,
@@ -73,6 +75,22 @@ async function advanceStage(roomCode, stageIndex) {
   }
 }
 
+// Publishes which answers the leader has keyed in correctly, so the
+// follower page can reveal them (e.g. "4.3 million members") the moment
+// they're solved, not only once the whole stage advances. Always writes
+// the full map (rebuilt from the leader's saved progress), so a missed
+// write self-heals on the next one. Fire-and-forget like advanceStage.
+async function updateSolved(roomCode, solved) {
+  if (!roomCode) return;
+  var database = ensureDb();
+  var ref = doc(database, "rooms", roomCode);
+  try {
+    await updateDoc(ref, { solved: solved, updatedAt: serverTimestamp() });
+  } catch (e) {
+    console.warn("room-sync: updateSolved failed (will retry on next solve)", e);
+  }
+}
+
 // Returns an unsubscribe function.
 function subscribeRoom(roomCode, onUpdate, onError) {
   var database = ensureDb();
@@ -95,6 +113,7 @@ function subscribeRoom(roomCode, onUpdate, onError) {
 window.CPFRoomSync = {
   createRoom: createRoom,
   advanceStage: advanceStage,
+  updateSolved: updateSolved,
   subscribeRoom: subscribeRoom,
   generateRoomCode: generateRoomCode,
 };

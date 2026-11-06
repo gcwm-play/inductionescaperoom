@@ -16,6 +16,10 @@
   var app = document.getElementById("app");
   var unsubscribe = null;
   var lastSeenStageIndex = null;
+  var lastSolvedCount = null;
+  // Latest map of answers the leader has keyed in correctly (see
+  // app.js's solvedSnapshot()) — read by the stage renderers below.
+  var solved = {};
 
   function esc(str) {
     var d = document.createElement("div");
@@ -163,21 +167,37 @@
     rememberRoomCode(code);
     if (unsubscribe) unsubscribe();
     lastSeenStageIndex = null; // reset so the first snapshot for this room never chimes
+    lastSolvedCount = null;
+    solved = {};
     renderShell(null, 0, "connecting");
     unsubscribe = window.CPFRoomSync.subscribeRoom(
       code,
       function (data) {
         var stageIndex = data.stageIndex || 0;
-        if (lastSeenStageIndex !== null && stageIndex !== lastSeenStageIndex) {
-          playStageChime();
-        }
+        solved = data.solved || {};
+        var solvedCount = countSolved(solved);
+        var stageChanged = lastSeenStageIndex !== null && stageIndex !== lastSeenStageIndex;
+        var newAnswer = lastSolvedCount !== null && solvedCount > lastSolvedCount;
+        if (stageChanged || newAnswer) playStageChime();
         lastSeenStageIndex = stageIndex;
+        lastSolvedCount = solvedCount;
         renderShell(data, stageIndex, "live");
       },
       function () {
         renderShell(null, 0, "notfound");
       }
     );
+  }
+
+  function countSolved(map) {
+    var n = 0;
+    ["email0", "email1", "s4a", "s4b"].forEach(function (k) { if (map[k]) n++; });
+    return n + (map.s5words ? map.s5words.length : 0);
+  }
+
+  // The "you got it" line shown once the leader has keyed in an answer.
+  function revealBanner(template, answer) {
+    return '<div class="success-banner follow-reveal">✓ ' + esc((template || "{answer}").replace("{answer}", answer)) + "</div>";
   }
 
   function renderShell(data, stageIndex, status) {
@@ -312,12 +332,13 @@
   function renderStage2(wrap) {
     var s = C.stage2;
     var emailsHtml = s.emails
-      .map(function (email) {
+      .map(function (email, i) {
         var paras = email.paragraphs.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
         return (
           '<div class="email-open" style="margin-bottom:14px">' +
           '<div class="email-open__subject">' + esc(email.subject) + "</div>" +
           '<div class="email-open__from">' + esc(email.from) + " · " + esc(email.time) + "</div>" +
+          (solved["email" + i] ? revealBanner(s.followReveal, email.answer) : "") +
           paras +
           "</div>"
         );
@@ -375,11 +396,18 @@
 
   function renderStage3b(wrap) {
     var s = C.stage3b;
-    wrap.innerHTML = card(
-      stageHeading(s.icon, s.title) +
-      '<p class="follow-waiting">Your team is photographing their logo drawing now…</p>',
-      true
-    );
+    // Reaching this view means the tile puzzle was just solved — show the
+    // restored mission statement before the photo step.
+    wrap.innerHTML =
+      card(
+        "<h3>" + esc(C.stage3.successHeading) + "</h3>" +
+        '<p class="follow-statement">' + esc(C.stage3.tiles.join(" ")) + "</p>"
+      ) +
+      card(
+        stageHeading(s.icon, s.title) +
+        '<p class="follow-waiting">Your team is photographing their logo drawing now…</p>',
+        true
+      );
   }
 
   function renderStage4(wrap) {
@@ -388,7 +416,13 @@
     // gets a direct "Open" button here instead of its QR — followers are
     // already on their own phone, so scanning a code off their own
     // screen would be a pointless extra step.
-    function challengeCard(challenge) {
+    function challengeCard(challenge, key) {
+      if (solved[key]) {
+        return card(
+          '<span class="eyebrow">' + esc(challenge.label) + "</span>" +
+          revealBanner(challenge.followReveal, challenge.answer)
+        );
+      }
       if (challenge.link) {
         var href = "../" + challenge.link;
         return card(
@@ -402,10 +436,14 @@
         : "<p>" + esc(challenge.prompt) + "</p>";
       return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml);
     }
+    var summary = s.summaryTemplate
+      .replace("{members}", solved.s4a ? s.challengeA.answer : "_._")
+      .replace("{projects}", solved.s4b ? s.challengeB.answer : "__");
     wrap.innerHTML =
       card(stageHeading(s.icon, s.title) + "<p>" + esc(s.intro) + "</p>") +
-      challengeCard(s.challengeA) +
-      challengeCard(s.challengeB);
+      challengeCard(s.challengeA, "s4a") +
+      challengeCard(s.challengeB, "s4b") +
+      card('<div class="number-summary">' + esc(summary) + "</div>", true);
   }
 
   function renderStage5(wrap) {
@@ -414,13 +452,41 @@
       stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       "<p>" + esc(s.hint) + "</p>" +
-      '<div class="hint-box">' + esc(s.colorHint) + "</div>"
+      '<div class="hint-box">' + esc(s.colorHint) + "</div>" +
+      foundWordsHtml(s)
     );
+  }
+
+  function foundWordsHtml(s) {
+    var found = (solved.s5words || []).filter(function (w) { return s.answers.indexOf(w) !== -1; });
+    var slots = s.answers.map(function (_, i) {
+      return found[i]
+        ? '<span class="follow-word follow-word--found">✓ ' + esc(found[i]) + "</span>"
+        : '<span class="follow-word">? ? ?</span>';
+    }).join("");
+    return '<div class="field-label">' + esc(s.followFoundLabel || "Found so far") + "</div>" +
+      '<div class="follow-words">' + slots + "</div>";
   }
 
   function renderFinale(wrap) {
     var f = C.finale;
-    wrap.innerHTML = card(stageHeading(f.icon, f.heading) + "<p>" + esc(f.subheading) + "</p>", true);
+    var s4 = C.stage4;
+    var vision = f.slide2.visionTemplate
+      .replace("{word1}", C.stage5.answers[0].toLowerCase())
+      .replace("{word2}", C.stage5.answers[1].toLowerCase())
+      .replace("{word3}", C.stage5.answers[2].toLowerCase());
+    wrap.innerHTML =
+      card(stageHeading(f.icon, f.heading) + "<p>" + esc(f.subheading) + "</p>", true) +
+      card(
+        "<h3>" + esc(f.slide1.missionLabel) + "</h3>" +
+        '<p class="follow-statement">' + esc(C.stage3.tiles.join(" ")) + "</p>" +
+        "<h3>" + esc(f.slide2.visionLabel) + "</h3>" +
+        '<p class="follow-statement">' + esc(vision) + "</p>" +
+        "<h3>" + esc(f.slide2.statsLabel) + "</h3>" +
+        '<p class="number-summary follow-summary-light">' +
+        esc(s4.summaryTemplate.replace("{members}", s4.challengeA.answer).replace("{projects}", s4.challengeB.answer)) +
+        "</p>"
+      );
   }
 
   init();

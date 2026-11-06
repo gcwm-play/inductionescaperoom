@@ -163,6 +163,32 @@
     window.CPFRoomSync.advanceStage(state.roomCode, view);
   }
 
+  // Which answers are solved so far, rebuilt from saved progress each
+  // time (so it's always complete, never just a delta). Only booleans and
+  // already-correct words are sent — the follower page looks up the
+  // display text in its own copy of content.js.
+  function solvedSnapshot() {
+    var pd = state.progressData;
+    var s4 = C.stage4;
+    var found = [];
+    pd.stage5.inputs.forEach(function (v) {
+      var n = normalize(v);
+      if (n && C.stage5.answers.indexOf(n) !== -1 && found.indexOf(n) === -1) found.push(n);
+    });
+    return {
+      email0: !!pd.stage2.solved[0],
+      email1: !!pd.stage2.solved[1],
+      s4a: pd.stage4.a !== "" && parseFloat(pd.stage4.a) === parseFloat(s4.challengeA.answer),
+      s4b: pd.stage4.b !== "" && parseInt(pd.stage4.b, 10) === parseInt(s4.challengeB.answer, 10),
+      s5words: found,
+    };
+  }
+
+  function syncSolved() {
+    if (!state.roomCode || !window.CPFRoomSync || !window.CPFRoomSync.updateSolved) return;
+    window.CPFRoomSync.updateSolved(state.roomCode, solvedSnapshot());
+  }
+
   // Creates a room the first time a team starts (view 0 -> 1), so
   // teammates can scan/type a code to follow along. Runs in parallel with
   // the (synchronous, local-only) stage unlock that already happens on
@@ -181,6 +207,7 @@
         // roomCode yet. Catch up to wherever we actually are now so a
         // follower joining right away doesn't miss Stage 1 entirely.
         syncRoomStage(state.currentView);
+        syncSolved();
         render();
       })
       .catch(function (e) {
@@ -716,6 +743,7 @@
         if (normalize(input.value) === normalize(email.answer)) {
           pd.solved[idx] = true;
           save();
+          syncSolved();
           activeEmail = null;
           renderStage2(wrap);
         } else {
@@ -1040,6 +1068,7 @@
         pd.a = val;
         save();
         if (val !== "" && !isNaN(parseFloat(val)) && parseFloat(val) === parseFloat(s.challengeA.answer)) {
+          syncSolved();
           renderStage4(wrap);
         } else {
           document.getElementById("s4aError").textContent = s.challengeA.errorMessage;
@@ -1054,6 +1083,7 @@
         pd.b = val;
         save();
         if (val !== "" && !isNaN(parseInt(val, 10)) && parseInt(val, 10) === parseInt(s.challengeB.answer, 10)) {
+          syncSolved();
           renderStage4(wrap);
         } else {
           document.getElementById("s4bError").textContent = s.challengeB.errorMessage;
@@ -1115,8 +1145,10 @@
         var caret = el.selectionStart;
         el.value = el.value.toUpperCase();
         if (caret !== null) el.setSelectionRange(caret, caret);
+        var wasCorrect = isTargetWord(pd.inputs[i]);
         pd.inputs[i] = el.value;
         save();
+        if (isTargetWord(el.value) !== wasCorrect) syncSolved();
         el.classList.toggle("word-input--correct", isTargetWord(el.value));
         el.classList.toggle("word-input--wrong", !isTargetWord(el.value));
         var sorted = pd.inputs.map(normalize).slice().sort();

@@ -139,6 +139,8 @@ window.CPF_CONTENT = {
         ],
       },
     ],
+    // What teammates on the /follow/ page see under each solved email.
+    followReveal: "Hidden word found: {answer}",
     successMessage: "Both words confirmed. Slide 1 needs MISSION, Slide 2 needs VISION.",
     continueButton: "Continue",
   },
@@ -272,6 +274,8 @@ window.CPF_CONTENT = {
       inputLabel: "Your answer",
       inputPlaceholder: "",
       answer: "4.3",
+      // What teammates on the /follow/ page see once this is solved.
+      followReveal: "{answer} million members",
       submitButton: "Submit",
       errorMessage: "That's not right. Try again.",
     },
@@ -291,6 +295,7 @@ window.CPF_CONTENT = {
       inputLabel: "Your answer",
       inputPlaceholder: "",
       answer: "30",
+      followReveal: "Over {answer} national projects",
       submitButton: "Submit",
       errorMessage: "That's not right. Try again.",
     },
@@ -311,6 +316,8 @@ window.CPF_CONTENT = {
     hint: "Solve the crossword puzzle completely, and unscramble the highlighted boxes. These 3 words are the actual pillars of CPF Board's Vision statement — not placeholders.",
     colorHint: "Hint: Get a word right and it'll turn green.",
     wordLabels: ["Word 1", "Word 2", "Word 3"],
+    // Heading above the words found so far, on the /follow/ page.
+    followFoundLabel: "Key words found so far",
     answers: ["TRUSTED", "RESPECTED", "COMMITTED"],
     continueButton: "Reconstruct the Slides",
   },
