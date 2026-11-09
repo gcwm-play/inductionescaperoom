@@ -545,33 +545,69 @@
       })
       .join("");
 
+    var digitCount = s.lockCode.length;
+    var digitsHtml = "";
+    for (var di = 0; di < digitCount; di++) {
+      digitsHtml +=
+        '<input type="tel" inputmode="numeric" maxlength="1" class="otp-digit" id="s1d' + di + '" ' +
+        'autocomplete="off" aria-label="Digit ' + (di + 1) + " of " + digitCount + '" />';
+    }
+
     wrap.innerHTML =
       '<div class="card">' +
       stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +
       '<div class="shape-legend">' + legendHtml + "</div>" +
       '<div class="shape-puzzle">' + groupsHtml + '<div class="shape-op shape-op--query">?</div></div>' +
-      '<label class="field-label" for="s1input">' + esc(s.inputLabel) + "</label>" +
-      '<input type="tel" inputmode="numeric" maxlength="4" id="s1input" placeholder="' + esc(s.inputPlaceholder) + '" autocomplete="off" />' +
+      '<span class="field-label" id="s1label">' + esc(s.inputLabel) + "</span>" +
+      '<div class="otp-row" role="group" aria-labelledby="s1label">' + digitsHtml + "</div>" +
       '<div class="error-text" id="s1error"></div>' +
       '<button class="btn btn--primary" id="s1submit" style="margin-top:10px">Submit Code</button>' +
       "</div>";
 
-    var input = document.getElementById("s1input");
     var errorEl = document.getElementById("s1error");
     var card = wrap.querySelector(".card");
+    var digitInputs = [];
+    for (var gi = 0; gi < digitCount; gi++) digitInputs.push(document.getElementById("s1d" + gi));
 
-    document.getElementById("s1submit").addEventListener("click", function () {
-      var val = input.value.replace(/\D/g, "");
+    function submitCode() {
+      var val = digitInputs.map(function (inp) { return inp.value; }).join("");
       if (val === s.lockCode) {
         unlock(2);
       } else {
         errorEl.textContent = s.errorMessage;
         shakeEl(card);
       }
-    });
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") document.getElementById("s1submit").click();
+    }
+
+    digitInputs.forEach(function (inp, i) {
+      inp.addEventListener("input", function () {
+        inp.value = inp.value.replace(/\D/g, "").slice(0, 1);
+        if (inp.value && i < digitCount - 1) digitInputs[i + 1].focus();
+        if (digitInputs.every(function (d) { return d.value; })) submitCode();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Backspace" && !inp.value && i > 0) {
+          digitInputs[i - 1].focus();
+          digitInputs[i - 1].value = "";
+        } else if (e.key === "Enter") {
+          submitCode();
+        }
+      });
+      // Pasting a full code into any box fills every box from there, same
+      // as a banking app's OTP entry — otherwise a paste would just land
+      // one digit in this box (maxlength=1 truncates the rest).
+      inp.addEventListener("paste", function (e) {
+        var text = (e.clipboardData || window.clipboardData).getData("text");
+        var digits = (text || "").replace(/\D/g, "").slice(0, digitCount);
+        if (!digits) return;
+        e.preventDefault();
+        digits.split("").forEach(function (d, idx) {
+          if (digitInputs[idx]) digitInputs[idx].value = d;
+        });
+        digitInputs[Math.min(digits.length, digitCount - 1)].focus();
+        if (digits.length === digitCount) submitCode();
+      });
     });
   }
 
@@ -1165,6 +1201,18 @@
     var dateStamp = state.completedAt ? formatDateStamp(state.completedAt) : "";
 
     wrap.innerHTML =
+      '<div class="finale-wrap">' +
+      '<div class="finale-confetti" aria-hidden="true">' +
+      '<span class="confetti-piece confetti-piece--1"></span>' +
+      '<span class="confetti-piece confetti-piece--2"></span>' +
+      '<span class="confetti-piece confetti-piece--3"></span>' +
+      '<span class="confetti-piece confetti-piece--4"></span>' +
+      '<span class="confetti-piece confetti-piece--5"></span>' +
+      '<span class="confetti-piece confetti-piece--6"></span>' +
+      '<span class="confetti-piece confetti-piece--7"></span>' +
+      '<span class="confetti-piece confetti-piece--8"></span>' +
+      "</div>" +
+      '<div class="finale-seal" aria-hidden="true">&#10003;</div>' +
       '<div class="completion-stamp">' +
       "<div class=\"completion-stamp__line\">" + completionLine + "</div>" +
       (dateStamp ? '<div class="completion-stamp__date">' + esc(dateStamp) + "</div>" : "") +
@@ -1195,6 +1243,7 @@
       stageHeading(f.icon, f.completionHeading) +
       "<p>" + esc(f.completionBody) + "</p>" +
       '<button class="btn btn--primary" id="restartBtn">' + esc(f.restartButton) + "</button>" +
+      "</div>" +
       "</div>";
 
     document.getElementById("restartBtn").addEventListener("click", function () {

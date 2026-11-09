@@ -322,6 +322,26 @@ input:focus { outline: none; border-color: var(--gold-500); }
   font-family: "Courier New", monospace;
 }
 
+/* Stage 1's answer entry — one box per digit (the pattern every
+   banking/2FA app uses), rather than a single free-text field. Sizing
+   matches .lock-code__digit so the "enter the code" and "here's the
+   code" moments feel like the same component. */
+.otp-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 4px 0 2px;
+}
+.otp-digit {
+  width: 52px;
+  height: 62px;
+  padding: 0;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
 .email-list { display: flex; flex-direction: column; gap: 10px; }
 .email-item {
   background: #fff;
@@ -525,8 +545,8 @@ input.word-input--correct { color: var(--green); font-weight: 800; border-color:
 .slide__label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-500); font-weight: 800; margin-top: 10px; }
 .slide__text { font-size: 0.95rem; color: var(--ink); line-height: 1.4; }
 .slide__stats { display: flex; gap: 18px; margin-top: 10px; }
-.slide__stat-num { font-size: 1.5rem; font-weight: 800; color: var(--navy-800); }
-.slide__stat-label { font-size: 0.72rem; color: var(--ink-soft); }
+.slide__stat-num { font-family: Georgia, serif; font-size: 2rem; font-weight: 700; color: var(--navy-800); line-height: 1; }
+.slide__stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-top: 4px; }
 .slide__vision mark { background: var(--gold-500); color: var(--navy-950); padding: 0 3px; border-radius: 3px; font-weight: 800; }
 
 .footer-link {
@@ -543,6 +563,51 @@ input.word-input--correct { color: var(--green); font-weight: 800; border-color:
   font-size: 0.75rem;
   cursor: pointer;
   font-family: inherit;
+}
+
+/* The finale is the one screen that should feel like a different weight
+   of moment than every puzzle before it — static confetti, a bigger
+   seal, and the stamp/slides below sit inside this so the confetti
+   can be positioned relative to the whole win screen. */
+.finale-wrap {
+  position: relative;
+}
+.finale-confetti {
+  position: relative;
+  height: 46px;
+  margin: 0 0 -6px;
+  pointer-events: none;
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+}
+.confetti-piece--1 { left: 6%;  top: 16px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-500); opacity: 0.85; transform: rotate(10deg); }
+.confetti-piece--2 { left: 20%; top: 2px;  background: var(--paper); opacity: 0.55; transform: rotate(20deg); }
+.confetti-piece--3 { left: 36%; top: 22px; width: 7px; height: 7px; border-radius: 50%; background: var(--green); opacity: 0.7; }
+.confetti-piece--4 { left: 52%; top: 6px;  background: var(--gold-400); opacity: 0.8; transform: rotate(-16deg); }
+.confetti-piece--5 { left: 66%; top: 26px; width: 6px; height: 6px; border-radius: 50%; background: var(--paper); opacity: 0.5; }
+.confetti-piece--6 { left: 78%; top: 10px; background: var(--green); opacity: 0.65; transform: rotate(30deg); }
+.confetti-piece--7 { left: 90%; top: 20px; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-500); opacity: 0.75; }
+.confetti-piece--8 { left: 12%; top: 34px; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-400); opacity: 0.5; }
+
+.finale-seal {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--gold-400), var(--gold-500) 60%, #a9791f 100%);
+  border: 3px solid var(--gold-400);
+  box-shadow: 0 10px 26px rgba(212, 175, 55, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--navy-950);
 }
 
 .completion-stamp {
