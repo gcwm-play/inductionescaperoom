@@ -65,6 +65,13 @@
       // /follow/ page. null/absent just means nobody's invited anyone;
       // the game plays exactly as before either way.
       roomCode: null,
+      // True between tapping "Begin the Rebuild" and actually starting
+      // Stage 1 — shows the team-invite QR screen so everyone can join
+      // before the facilitator gives the go-ahead. currentView stays 0
+      // the whole time; this is a sub-state of the Welcome screen, not
+      // its own view index, so none of the other stages' numbering
+      // (STAGE_VIEW_START/END, the switch in render(), etc.) changes.
+      showInvite: false,
       progressData: {
         stage2: { solved: [false, false], inputs: ["", ""] },
         stage3: {
@@ -173,15 +180,23 @@
       .then(function (code) {
         state.roomCode = code;
         save();
-        // The room doc is created at stageIndex 0, but by the time this
-        // promise resolves the player has likely already moved past
-        // Welcome (unlock(1) runs synchronously right after this call
-        // kicks off, well before the network round-trip finishes) — that
-        // transition's own syncRoomStage() call silently no-ops without a
-        // roomCode yet. Catch up to wherever we actually are now so a
-        // follower joining right away doesn't miss Stage 1 entirely.
+        // By the time this resolves the player may already have moved
+        // on — tapped through the invite screen to Stage 1, or further
+        // — since this is a network round-trip, not instant. Catch up
+        // the room doc to wherever we actually are now so a follower
+        // joining right away doesn't miss anything.
         syncRoomStage(state.currentView);
-        render();
+        // Still on the invite screen (view 0) is the one case needing a
+        // full render(): that's where the QR/code themselves live, in
+        // the stage content, not just the topbar. Anywhere else, only
+        // refresh the topbar badge — a full render() there would wipe
+        // out whatever the player is mid-way through on their current
+        // stage.
+        if (state.currentView === 0) {
+          render();
+        } else {
+          refreshTopbar();
+        }
       })
       .catch(function (e) {
         console.warn("room-sync: createRoom failed, continuing without it", e);
@@ -322,6 +337,31 @@
   // ---------------------------------------------------------------------
   // Render root
   // ---------------------------------------------------------------------
+  function wireTopbar(wrap) {
+    var readBtn = document.getElementById("readAloudBtn");
+    if (readBtn) readBtn.addEventListener("click", function () { toggleReadAloud(wrap, readBtn); });
+
+    var brandTapTarget = document.getElementById("brandTapTarget");
+    if (brandTapTarget) brandTapTarget.addEventListener("click", handleBrandTap);
+
+    var roomBadgeBtn = document.getElementById("roomBadgeBtn");
+    if (roomBadgeBtn) roomBadgeBtn.addEventListener("click", openRoomInviteOverlay);
+  }
+
+  // Updates just the topbar (e.g. to show the room badge once createRoom
+  // resolves) without touching #stageWrap — a full render() there would
+  // wipe out whatever the player is mid-way through typing on their
+  // current stage, since this can land well after they've moved on from
+  // wherever the room-creation call started.
+  function refreshTopbar() {
+    var topbarEl = document.querySelector(".topbar");
+    if (!topbarEl) return;
+    var temp = document.createElement("div");
+    temp.innerHTML = renderTopbar(state.currentView);
+    topbarEl.replaceWith(temp.firstElementChild);
+    wireTopbar(document.getElementById("stageWrap"));
+  }
+
   function render() {
     // Never let audio from a screen the player has left keep talking.
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
@@ -331,14 +371,7 @@
     app.innerHTML = html;
     var wrap = document.getElementById("stageWrap");
 
-    var readBtn = document.getElementById("readAloudBtn");
-    if (readBtn) readBtn.addEventListener("click", function () { toggleReadAloud(wrap, readBtn); });
-
-    var brandTapTarget = document.getElementById("brandTapTarget");
-    if (brandTapTarget) brandTapTarget.addEventListener("click", handleBrandTap);
-
-    var roomBadgeBtn = document.getElementById("roomBadgeBtn");
-    if (roomBadgeBtn) roomBadgeBtn.addEventListener("click", openRoomInviteOverlay);
+    wireTopbar(wrap);
 
     try {
       switch (view) {
@@ -445,17 +478,24 @@
   // /follow/ page link, so teammates can scan (or type the code by hand)
   // to mirror the leader's progress live, read-only, on their own phone.
   // ---------------------------------------------------------------------
-  function openRoomInviteOverlay() {
-    var followUrl = new URL("follow/index.html?room=" + encodeURIComponent(state.roomCode), window.location.href).toString();
-    var qrSvg = "";
+  function followUrlFor(roomCode) {
+    return new URL("follow/index.html?room=" + encodeURIComponent(roomCode), window.location.href).toString();
+  }
+
+  function buildRoomQrSvg(targetUrl) {
+    if (!window.CPFQRCode) return "";
     try {
-      if (window.CPFQRCode) {
-        var qr = window.CPFQRCode(0, "M");
-        qr.addData(followUrl);
-        qr.make();
-        qrSvg = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
-      }
-    } catch (e) {}
+      var qr = window.CPFQRCode(0, "M");
+      qr.addData(targetUrl);
+      qr.make();
+      return qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function openRoomInviteOverlay() {
+    var qrSvg = buildRoomQrSvg(followUrlFor(state.roomCode));
 
     var overlay = document.createElement("div");
     overlay.className = "confirm-overlay";
@@ -485,6 +525,11 @@
   // Welcome
   // ---------------------------------------------------------------------
   function renderWelcome(wrap) {
+    if (state.showInvite) {
+      renderWelcomeInvite(wrap);
+      return;
+    }
+
     var w = C.welcome;
     var paras = w.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
     wrap.innerHTML =
@@ -512,7 +557,45 @@
         shakeEl(document.getElementById("teamNameInput"));
         return;
       }
+      // Don't unlock Stage 1 yet — show the team-invite QR screen first
+      // so everyone can join before solving actually begins. createRoom
+      // is fire-and-forget as always; the invite screen below handles
+      // the moment before it resolves.
+      state.showInvite = true;
+      save();
       createRoomForTeam();
+      render();
+    });
+    document.getElementById("resetLink").addEventListener("click", function () {
+      confirmDialog("Reset all progress on this device? This cannot be undone.", resetAll);
+    });
+  }
+
+  // Shown between naming the team and actually starting Stage 1 — gives
+  // teammates a chance to scan the invite QR (or type the code by hand)
+  // before the clock and the first puzzle begin. Reuses the same
+  // paper-card styling as the room-invite overlay (openRoomInviteOverlay)
+  // since it's the same content, just shown full-screen instead of as a
+  // dialog.
+  function renderWelcomeInvite(wrap) {
+    var hasCode = !!state.roomCode;
+    var qrSvg = hasCode ? buildRoomQrSvg(followUrlFor(state.roomCode)) : "";
+
+    wrap.innerHTML =
+      '<div class="card room-invite-box">' +
+      "<h3>Invite your team</h3>" +
+      "<p>Teammates can scan this to follow your progress live on their own phone — it's read-only, they don't need to solve anything there.</p>" +
+      (hasCode
+        ? (qrSvg ? '<div class="room-invite-qr">' + qrSvg + "</div>" : "") +
+          '<div class="room-invite-code">' + esc(state.roomCode) + "</div>" +
+          '<p class="room-invite-hint">No camera handy? They can open the /follow/ page and type this code in by hand instead.</p>'
+        : '<p style="font-style:italic">Setting up your team’s room…</p>') +
+      '<button class="btn btn--primary" id="toFirstStage" style="margin-top:14px">Wait for the facilitator’s instructions before starting</button>' +
+      "</div>" +
+      '<div class="footer-link">' +
+      '<button id="resetLink">Facilitator: reset progress</button></div>';
+
+    document.getElementById("toFirstStage").addEventListener("click", function () {
       unlock(Math.max(1, state.maxUnlocked));
     });
     document.getElementById("resetLink").addEventListener("click", function () {
