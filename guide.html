@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b2545">
+<meta name="robots" content="noindex">
+<title>Facilitator Guide · CPF Board Induction Escape Room</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B2545'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23D4AF37'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --navy-950: #081a33; --navy-900: #0b2545; --navy-800: #123563; --navy-100: #dbe4f1; --navy-50: #eaf0f8;
+    --gold-500: #d4af37; --gold-400: #e2c465; --gold-100: #f1e3ae; --gold-50: #fbf4d9;
+    --ink: #17233b; --text: #26324a; --muted: #5a6479;
+    --line: #d9d2c0; --bg: #ebe6d9; --surface: #f9f6ee; --surface-2: #f0ebdd; --white: #fffdf8;
+    --warn-ink: #6f4a06; --warn-line: #e6c877;
+    --r: 16px; --sh: 0 2px 6px rgba(8,26,51,.05), 0 10px 30px rgba(8,26,51,.08);
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --serif: Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body { margin: 0; font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: var(--navy-800); font-weight: 600; text-underline-offset: 2px; }
+  header { position: sticky; top: 0; z-index: 10; background: var(--navy-900); border-bottom: 2px solid var(--gold-500); }
+  .hd { max-width: 1160px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--gold-500); color: var(--navy-950); display: grid; place-items: center; font-weight: 800; font-size: 17px; flex: 0 0 auto; }
+  .hd b { color: #fff; font-size: 16px; white-space: nowrap; } .hd span { color: var(--gold-400); font-size: 14px; }
+  .hd .sp { flex: 1; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 10px; background: var(--gold-500); color: var(--navy-950); text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35); }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 24px 20px 80px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; }
+  nav.toc { position: sticky; top: 76px; align-self: start; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; box-shadow: var(--sh); font-size: 14px; }
+  nav.toc b { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px 6px; }
+  nav.toc a { display: block; padding: 6px 8px; border-radius: 8px; color: var(--text); text-decoration: none; font-weight: 600; }
+  nav.toc a:hover { background: var(--navy-50); color: var(--navy-900); }
+  nav.toc a.on { background: var(--navy-900); color: var(--gold-400); }
+  main { min-width: 0; }
+  .hero { background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-800) 100%); color: #fff; border-radius: 22px; padding: 28px 30px; box-shadow: var(--sh); margin-bottom: 22px; border-bottom: 4px solid var(--gold-500); }
+  .hero .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-400); font-weight: 700; }
+  .hero h1 { margin: 4px 0 8px; font-family: var(--serif); font-size: 32px; line-height: 1.15; text-wrap: balance; }
+  .hero p { margin: 0; opacity: .92; font-size: 16px; max-width: 720px; }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .links a { background: rgba(255,255,255,.12); color: #fff; padding: 8px 12px; border-radius: 10px; text-decoration: none; font-size: 14px; border: 1px solid rgba(226,196,101,.35); }
+  .links a:hover { background: rgba(255,255,255,.22); }
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; margin-bottom: 18px; box-shadow: var(--sh); }
+  h2 { margin: 0 0 4px; font-family: var(--serif); font-size: 22px; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+  h2 .n { width: 30px; height: 30px; border-radius: 50%; background: var(--navy-900); color: var(--gold-400); display: grid; place-items: center; font-family: var(--font); font-size: 14px; font-weight: 800; flex: 0 0 auto; }
+  h3 { margin: 20px 0 6px; font-size: 16px; color: var(--ink); }
+  h3.stage { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-family: var(--serif); font-size: 19px; }
+  p { margin: 8px 0; }
+  .lead { color: var(--muted); margin: 0 0 12px; }
+  ol, ul { padding-left: 22px; margin: 8px 0; } li { margin: 4px 0; }
+  kbd { font-family: var(--mono); font-size: 12px; background: var(--white); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+  code { font-family: var(--mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; overflow-wrap: anywhere; }
+  .ui { font-weight: 700; color: var(--ink); }
+  .tbl { overflow-x: auto; margin: 10px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+  td:first-child { font-weight: 600; color: var(--ink); }
+  .tip, .warn { border-radius: 12px; padding: 12px 14px; margin: 12px 0; font-size: 14px; }
+  .tip { background: var(--navy-50); border: 1px solid var(--navy-100); color: var(--navy-900); }
+  .warn { background: var(--gold-50); border: 1px solid var(--warn-line); color: var(--warn-ink); }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps > li { counter-increment: s; position: relative; padding: 2px 0 10px 42px; }
+  .steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--navy-900); color: var(--gold-400); display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+  .check { list-style: none; padding: 0; }
+  .check > li { position: relative; padding: 2px 0 8px 32px; }
+  .check > li::before { content: ""; position: absolute; left: 2px; top: 5px; width: 16px; height: 16px; border-radius: 4px; border: 2px solid var(--navy-800); background: var(--white); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+  .grid.two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .card { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .card > b { display: block; color: var(--ink); margin-bottom: 4px; }
+  .card p { margin: 0; font-size: 14px; color: var(--muted); }
+  .duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 10px 0; }
+  .duo .card { border-top: 3px solid var(--navy-800); }
+  .duo .card.you { border-top-color: var(--gold-500); }
+  .duo .card > b { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .duo .card ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; color: var(--text); }
+  figure.shot { margin: 14px 0 6px; }
+  figure.shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--sh); background: var(--navy-900); }
+  figure.shot a { display: block; cursor: zoom-in; }
+  figure.shot figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; text-align: center; line-height: 1.45; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; align-items: start; }
+  .shots.phone { grid-template-columns: repeat(auto-fit, minmax(160px, 220px)); justify-content: center; }
+  .shots figure.shot { margin: 6px 0; }
+  .shots.phone.pair { grid-template-columns: repeat(2, minmax(160px, 220px)); }
+  .pairs { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 6px 24px; }
+  details.key { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px; margin: 12px 0; }
+  details.key summary { cursor: pointer; font-weight: 700; color: var(--ink); padding: 10px 0; }
+  .ans { font-family: var(--mono); font-weight: 700; color: var(--navy-900); background: var(--gold-50); border: 1px solid var(--gold-100); border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+  .tl { list-style: none; padding: 0; margin: 10px 0 10px 6px; border-left: 3px solid var(--gold-100); }
+  .tl li { position: relative; padding: 2px 0 12px 20px; margin: 0; }
+  .tl li::before { content: ""; position: absolute; left: -8px; top: 7px; width: 13px; height: 13px; border-radius: 50%; background: var(--gold-500); box-shadow: 0 0 0 3px var(--surface); }
+  .tl b.when { display: inline-block; min-width: 74px; color: var(--navy-800); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+  .prompt { background: var(--white); border: 1px solid var(--line); border-left: 4px solid var(--gold-500); border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: 14px; color: var(--text); }
+  .prompt small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; gap: 16px; padding: 16px 16px 60px; }
+    nav.toc { position: static; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; }
+    nav.toc b { flex-basis: 100%; margin: 0 0 2px 2px; }
+    nav.toc a { background: var(--surface-2); padding: 5px 10px; font-size: 13px; }
+    .hd { padding: 10px 16px; } .hd span, .btn.ghost { display: none; }
+    section { padding: 18px 16px; } .hero { padding: 22px 20px; } .hero h1 { font-size: 25px; }
+    .shots.phone, .shots.phone.pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .pairs { grid-template-columns: 1fr; }
+  }
+  @media print { header, nav.toc { display: none; } .wrap { display: block; } section, .hero { box-shadow: none; break-inside: avoid; } body { background: #fff; } details.key > *:not(summary) { display: block; } }
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <div class="logo">C</div><b>Facilitator guide</b><span>CPF Board Induction Escape Room</span>
+  <div class="sp"></div>
+  <a class="btn ghost" href="follow/index.html" target="_blank">Follow page ↗</a>
+  <a class="btn" href="index.html" target="_blank">Open the game ↗</a>
+</div></header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contents">
+    <b>Contents</b>
+    <a href="#overview">Overview</a>
+    <a href="#prepare">Before the session</a>
+    <a href="#start">Starting a team</a>
+    <a href="#follow">Teammates following along</a>
+    <a href="#stages">Stage by stage</a>
+    <a href="#answers">Answer key</a>
+    <a href="#datarun">Optional: Data Run</a>
+    <a href="#shortcuts">Hidden controls</a>
+    <a href="#after">Between teams and after</a>
+    <a href="#trouble">Troubleshooting</a>
+    <a href="#built">How this app was built</a>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="eyebrow">Operation Board Briefing</div>
+      <h1>Running the CPF Board Induction Escape Room</h1>
+      <p>Everything a facilitator needs: what to set up, what each team sees on their phones stage by stage, when teams will come to you, and what to do when something goes wrong.</p>
+      <div class="links">
+        <a href="index.html" target="_blank">📱 The game</a>
+        <a href="follow/index.html" target="_blank">👥 Follow page</a>
+        <a href="tilt-maze/index.html" target="_blank">🌀 Code Maze</a>
+        <a href="#answers">🗝️ Answer key</a>
+        <a href="#shortcuts">⌨️ Hidden controls</a>
+      </div>
+    </div>
+
+    <div class="warn"><b>For facilitators only.</b> This page shows every answer. It is not linked from the game, so teams will not stumble onto it. Please do not share the link with participants.</div>
+
+    <section id="overview">
+      <h2><span class="n">i</span>Overview</h2>
+      <p class="lead">The story: President Tharman is visiting CPF Board in 30 minutes, a network outage has wiped the two summary slides for his briefing, and each team has to rebuild them. Along the way new joiners pick up the Board's founding date, mission, vision, real department codes and headline numbers.</p>
+      <div class="grid two">
+        <div class="card"><b>📱 The leader's phone</b><p>One phone per team runs the game. It is the only phone that can enter answers, and it remembers the team's progress.</p></div>
+        <div class="card"><b>👥 Teammates' phones</b><p>Everyone else scans a QR code and follows along on their own phone. They see the same clues, live, but cannot type anything.</p></div>
+        <div class="card"><b>🌀 A second phone for the Code Maze</b><p>In Stage 4 a teammate opens a tilt game on another phone, which sits on a physical device that you hand out.</p></div>
+        <div class="card"><b>🧰 Physical props, and you</b><p>A combination lock, paper and pens, a tool for Stage 4A, the maze device and three crosswords. Teams come to you for most of these.</p></div>
+      </div>
+
+      <h3>How a run works</h3>
+      <ol class="steps">
+        <li>The team leader opens the game, names the team, and shows an invite QR code so teammates can join on their own phones.</li>
+        <li>On your signal, every team starts. The clock starts at that moment.</li>
+        <li>Teams work through five stages. The app checks each answer, and several stages send the team to a physical prop or to you.</li>
+        <li>The final screen shows both rebuilt slides, the team's hand-drawn logo and their time. The team shows you that screen to finish.</li>
+      </ol>
+      <div class="tip">There is no countdown in the app. "30 minutes" is part of the story. The app records how long each team actually took and shows it at the end.</div>
+    </section>
+
+    <section id="prepare">
+      <h2><span class="n">1</span>Before the session</h2>
+      <p class="lead">Prepare one set of props per team. The app only checks answers, so the props are what make the room work.</p>
+      <ul class="check">
+        <li><b>Combination lock.</b> Set each 4-digit lock to <span class="ans">0107</span>.</li>
+        <li><b>Password note.</b> Put a slip reading <span class="ans">SECUREFUTURE</span> inside whatever the lock secures.</li>
+        <li><b>Paper and pens or markers</b> for the logo drawing in Stage 3B. A green marker is a nice touch, since the description mentions the colour.</li>
+        <li><b>The Stage 4A tool.</b> Whatever you hand over on request that leads a team to the member figure, <span class="ans">4.3</span> million. Keep it with you. Teams are told to approach the facilitator for it.</li>
+        <li><b>The Code Maze device</b> for Stage 4B: the physical device the phone lies flat on, with sticks for at least three people to hold. Keep it with you as well.</li>
+        <li><b>Three crossword puzzles per team</b> for Stage 5. Their highlighted boxes unscramble to <span class="ans">TRUSTED</span>, <span class="ans">RESPECTED</span> and <span class="ans">COMMITTED</span>.</li>
+        <li><b>Phones.</b> Each team needs one leader phone, and at least one other phone for the Code Maze. Teammates' own phones are fine.</li>
+        <li><b>The link to the game</b>, as a QR code on a slide or a printed card: <code>gcwm-play.github.io/inductionescaperoom/</code></li>
+      </ul>
+
+      <h3>On the day, before teams arrive</h3>
+      <ol class="steps">
+        <li><b>Check the network in the room.</b> Open the game on your own phone, name a test team, and confirm that a QR code and a 6-character room code appear. If they do, live following works on that network.</li>
+        <li><b>Check the Code Maze on a real phone.</b> Open it, tap <span class="ui">Start</span>, allow motion access if asked, and tilt. The ball should roll.</li>
+        <li><b>Reset your test.</b> Tap <span class="ui">Facilitator: reset progress</span> at the bottom of the screen so your phone is clean.</li>
+        <li><b>Lay out one prop set per team</b>, and keep the Stage 4 and Stage 5 items at your station.</li>
+      </ol>
+      <div class="warn"><b>If a phone has been used for this game before</b>, it will reopen wherever the last team stopped. Reset it before handing it to a new team. See <a href="#after">Between teams and after</a>.</div>
+    </section>
+
+    <section id="start">
+      <h2><span class="n">2</span>Starting a team</h2>
+      <p class="lead">Two screens come before the first puzzle. Hold every team on the second one until you are ready to start them together.</p>
+      <ol class="steps">
+        <li>Each team picks a <b>leader</b>, who opens the game link on their phone. Ask them to use a normal browser tab, not a private one.</li>
+        <li>The leader reads the briefing aloud, types a team nickname and taps <span class="ui">Begin the Rebuild</span>.</li>
+        <li>The <b>Invite your team</b> screen appears with a QR code and a room code. Teammates scan it with their phone cameras.</li>
+        <li>When every team is on this screen and teammates have joined, <b>give the signal</b>. Leaders tap the gold button, which reads <span class="ui">Wait for the facilitator's instructions before starting</span>. Stage 1 appears and the team's clock starts.</li>
+      </ol>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/welcome.jpg" target="_blank" title="Open full size"><img src="guide-img/welcome.jpg" width="780" height="1688" loading="lazy" alt="The welcome screen with the incident briefing and a team nickname field."></a><figcaption>Welcome: the briefing, the no-Google-or-AI rule and the team nickname.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/invite.jpg" target="_blank" title="Open full size"><img src="guide-img/invite.jpg" width="780" height="1688" loading="lazy" alt="The invite screen with a QR code, a six-character room code and the gold start button."></a><figcaption>Invite screen: teammates scan this. The gold button starts Stage 1 and the clock.</figcaption></figure>
+      </div>
+      <div class="tip"><b>What to say at the start.</b> One phone leads and the rest follow. Stages 3 and 4 each have two tasks, so split up. Come to the facilitator when the app tells you to. No Google and no AI: a team that uses them comes last.</div>
+      <div class="warn"><b>The clock starts on that gold button</b>, not on your word. If one leader taps early, their time will be longer than it should be. For a fair comparison, have leaders hold their phones up and tap together.</div>
+    </section>
+
+    <section id="follow">
+      <h2><span class="n">3</span>Teammates following along</h2>
+      <p class="lead">This stops one person from doing all the reading. Teammates see each stage's clues on their own phones the moment the leader reaches it.</p>
+      <ul>
+        <li><b>Joining.</b> Scan the leader's QR code, or open <code>gcwm-play.github.io/inductionescaperoom/follow/</code> and type the room code.</li>
+        <li><b>Read-only.</b> Followers can read every clue but cannot answer. Answers go into the leader's phone.</li>
+        <li><b>Live.</b> The page shows <span class="ui">● Live — following Team Name</span> and changes by itself when the leader moves on. A short chime plays on each change, once the follower has tapped their screen at least once and their phone is not on silent.</li>
+        <li><b>Joining late.</b> The leader taps the <span class="ui">👥 CODE</span> badge at the top of their screen to show the QR code again at any time.</li>
+        <li><b>Rejoining.</b> The follow page remembers its room. A teammate who closes the tab can reopen it and carry on.</li>
+      </ul>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/follow-join.jpg" target="_blank" title="Open full size"><img src="guide-img/follow-join.jpg" width="780" height="1688" loading="lazy" alt="The follow page asking for a room code."></a><figcaption>Typing the code by hand, for a phone that will not scan.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/follow-stage1.jpg" target="_blank" title="Open full size"><img src="guide-img/follow-stage1.jpg" width="780" height="1688" loading="lazy" alt="A teammate's phone showing the Stage 1 puzzle with a Live status."></a><figcaption>A teammate's view of Stage 1: the same puzzle, with no answer box.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/invite-overlay.jpg" target="_blank" title="Open full size"><img src="guide-img/invite-overlay.jpg" width="780" height="1688" loading="lazy" alt="The invite QR code reopened mid-game on the leader's phone."></a><figcaption>The leader's room badge reopens the QR code mid-game.</figcaption></figure>
+      </div>
+      <div class="tip"><b>The game does not depend on this.</b> If the network blocks live following, the leader's phone still runs every stage. Teams then share the one screen, or use the read-aloud button (🔊).</div>
+    </section>
+
+    <section id="stages">
+      <h2><span class="n">4</span>Stage by stage</h2>
+      <p class="lead">What the team sees and does at each stage, and what you need to do.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Stage</th><th>What the team does</th><th>Prop</th><th>Your part</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Passcode</td><td>Decode a shape puzzle into a 4-digit code and open the lock</td><td>Lock, password note</td><td>None, unless a lock jams</td></tr>
+          <tr><td>Password</td><td>Type the password found inside the lock</td><td>—</td><td>None</td></tr>
+          <tr><td>2 · Emails</td><td>Find a hidden word in each of two emails</td><td>—</td><td>None</td></tr>
+          <tr><td>3A · Departments</td><td>Pick the 5 real departments, then put the mission statement in order</td><td>—</td><td>Remind teams there is a second task</td></tr>
+          <tr><td>3B · Logo</td><td>Draw the CPF Board logo from a description, then photograph it</td><td>Paper, pens</td><td>Watch for teams searching online</td></tr>
+          <tr><td>4A · Members</td><td>Find the number of members served</td><td>Stage 4A tool</td><td>Hand over the tool when asked</td></tr>
+          <tr><td>4B · Code Maze</td><td>Steer a ball through a maze on a second phone to get the number of projects</td><td>Maze device</td><td>Hand over the device when asked</td></tr>
+          <tr><td>5 · Key words</td><td>Solve three crosswords to find three words from the vision</td><td>3 crosswords</td><td>Hand over the crosswords when asked</td></tr>
+          <tr><td>Finale</td><td>Show you the finished slides</td><td>—</td><td>Note the time, then reset the phone</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 class="stage">🔐 Stage 1 · Find the passcode, open the lock</h3>
+      <div class="duo">
+        <div class="card"><b>Participants</b><ul>
+          <li>See two example shapes with values, then a sum made of shapes.</li>
+          <li>Work out the rule and type a 4-digit code. The fourth digit submits it.</li>
+          <li>The app confirms the code, reveals that it is the Board's founding date, and sends them to the lock.</li>
+          <li>They open the lock, find the password, tap <span class="ui">I've opened the lock</span> and type the password to "reconnect to the network drive".</li>
+        </ul></div>
+        <div class="card you"><b>You</b><ul>
+          <li>The rule: each shape is worth its number of sides, and a circle is 1. The sum is 54 + 53 = 107, entered as 0107.</li>
+          <li>A team stuck for a long time usually has not noticed that two shapes side by side make a two-digit number.</li>
+          <li>The password is not case-sensitive.</li>
+        </ul></div>
+      </div>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/stage1.jpg" target="_blank" title="Open full size"><img src="guide-img/stage1.jpg" width="780" height="1688" loading="lazy" alt="Stage 1 with the shape puzzle and four single-digit boxes."></a><figcaption>The shape puzzle and the four digit boxes.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage1-solved.jpg" target="_blank" title="Open full size"><img src="guide-img/stage1-solved.jpg" width="780" height="1688" loading="lazy" alt="The code-cracked screen telling the team to open the physical lock."></a><figcaption>Code cracked: the founding date, then off to the lock.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/gate.jpg" target="_blank" title="Open full size"><img src="guide-img/gate.jpg" width="780" height="1688" loading="lazy" alt="The password screen."></a><figcaption>The password from inside the lock goes here.</figcaption></figure>
+      </div>
+
+      <h3 class="stage">✉️ Stage 2 · Recover the hidden words</h3>
+      <div class="duo">
+        <div class="card"><b>Participants</b><ul>
+          <li>See an inbox with two emails, one from IT Support and one from Mr Tang.</li>
+          <li>Open each email, find the word hidden in it, and type it underneath.</li>
+          <li>Both words must be confirmed before <span class="ui">Continue</span> appears.</li>
+        </ul></div>
+        <div class="card you"><b>You</b><ul>
+          <li>The first letter of each paragraph spells the word: MISSION in the first email, VISION in the second.</li>
+          <li>Nothing physical here. If a team is stuck, suggest they look at how each paragraph begins.</li>
+        </ul></div>
+      </div>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/stage2-inbox.jpg" target="_blank" title="Open full size"><img src="guide-img/stage2-inbox.jpg" width="780" height="1688" loading="lazy" alt="The Stage 2 inbox with two emails."></a><figcaption>The inbox.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage2-email.jpg" target="_blank" title="Open full size"><img src="guide-img/stage2-email.jpg" width="780" height="1688" loading="lazy" alt="An open email with an answer box below it."></a><figcaption>An open email. The answer box is below the text.</figcaption></figure>
+      </div>
+
+      <h3 class="stage">🧩 Stage 3 · Departments, mission statement and logo</h3>
+      <div class="warn"><b>Teams miss the second task.</b> Stage 3B sits below Stage 3A on the same screen, so it is only seen by scrolling down. When a team reaches Stage 3, check that someone has started drawing.</div>
+      <div class="duo">
+        <div class="card"><b>Participants</b><ul>
+          <li><b>3A:</b> tick the 5 real CPF Board departments out of 21 folder codes and submit.</li>
+          <li>A wrong try tells them how many of their ticks were right, for example "3 of your 5 selected departments are correct". It never says which ones.</li>
+          <li>Once right, they tap five phrases into order to rebuild the mission statement.</li>
+          <li><b>3B, at the same time:</b> a teammate draws the CPF Board logo on paper from a written description.</li>
+          <li>After the mission statement, the leader photographs the drawing. It appears on the final slide.</li>
+        </ul></div>
+        <div class="card you"><b>You</b><ul>
+          <li>Give out paper and pens early, or leave them on the table.</li>
+          <li>The logo must come from the description alone. Searching for the real logo breaks the no-Google rule.</li>
+          <li>The photo step asks for camera access. The team must tap <span class="ui">Allow</span>.</li>
+          <li>Followers see the mission phrases only after the leader has solved the departments, so nobody can skip ahead.</li>
+        </ul></div>
+      </div>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/stage3a.jpg" target="_blank" title="Open full size"><img src="guide-img/stage3a.jpg" width="780" height="1688" loading="lazy" alt="Stage 3A with a notice that the stage has two tasks, and a grid of department codes."></a><figcaption>Stage 3A at the top, with the two-tasks notice.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage3b-task.jpg" target="_blank" title="Open full size"><img src="guide-img/stage3b-task.jpg" width="780" height="1688" loading="lazy" alt="Scrolled down: the Stage 3B card describing the logo to draw."></a><figcaption>Scrolled down: the logo task that teams miss.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage3a-feedback.jpg" target="_blank" title="Open full size"><img src="guide-img/stage3a-feedback.jpg" width="780" height="1688" loading="lazy" alt="Feedback after a wrong submission: 3 of your 5 selected departments are correct."></a><figcaption>Feedback after a wrong try.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage3-tiles.jpg" target="_blank" title="Open full size"><img src="guide-img/stage3-tiles.jpg" width="780" height="1688" loading="lazy" alt="Mission statement phrases being tapped into order."></a><figcaption>Rebuilding the mission statement.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage3b-camera.jpg" target="_blank" title="Open full size"><img src="guide-img/stage3b-camera.jpg" width="780" height="1688" loading="lazy" alt="The Stage 3B screen with an Open Camera button."></a><figcaption>Photographing the drawing.</figcaption></figure>
+      </div>
+
+      <h3 class="stage">🔢 Stage 4 · The numbers</h3>
+      <div class="warn"><b>Two tasks again, and both come to you.</b> Stage 4B is below Stage 4A on the same screen. Expect two people from each team at your station: one for the 4A tool and one for the maze device.</div>
+      <div class="duo">
+        <div class="card"><b>Participants</b><ul>
+          <li><b>4A:</b> approach you for a tool, use it to find how many million members the Board serves, and type the number.</li>
+          <li><b>4B:</b> scan the QR code with a <b>separate phone</b> to open the Code Maze. Followers get a direct <span class="ui">Open the Code Maze</span> button instead.</li>
+          <li>Collect the device from you, lay the phone flat on it, and have at least three people hold the sticks to steer the ball to the goal.</li>
+          <li>The maze reveals a number, which goes back into the leader's phone.</li>
+          <li>Both answers are needed before <span class="ui">Continue</span> appears.</li>
+        </ul></div>
+        <div class="card you"><b>You</b><ul>
+          <li>Hand out the 4A tool and the maze device on request, and collect them afterwards.</li>
+          <li>On iPhones the maze asks for motion access after <span class="ui">Start</span>. The team must allow it.</li>
+          <li>The device must be held level for a second after <span class="ui">Start</span> while the maze calibrates. If the ball drifts, tap <span class="ui">↺</span> on the maze with the device level.</li>
+          <li>Falling into a hole sends the ball back to the start. The counter shows how many times.</li>
+          <li>As each answer is confirmed, followers see it too.</li>
+        </ul></div>
+      </div>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/stage4.jpg" target="_blank" title="Open full size"><img src="guide-img/stage4.jpg" width="780" height="1688" loading="lazy" alt="Stage 4 with the Stage 4A answer box."></a><figcaption>Stage 4A at the top.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage4-maze.jpg" target="_blank" title="Open full size"><img src="guide-img/stage4-maze.jpg" width="780" height="1688" loading="lazy" alt="Scrolled down: Stage 4B with a QR code for the Code Maze."></a><figcaption>Scrolled down: the Code Maze QR code.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/maze-start.jpg" target="_blank" title="Open full size"><img src="guide-img/maze-start.jpg" width="780" height="1688" loading="lazy" alt="The Code Maze start screen with its rules."></a><figcaption>Second phone: the maze rules.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/maze-play.jpg" target="_blank" title="Open full size"><img src="guide-img/maze-play.jpg" width="780" height="1688" loading="lazy" alt="The Code Maze in play: a gold ball, red holes, walls and a goal."></a><figcaption>Second phone: the maze in play.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/follow-stage4.jpg" target="_blank" title="Open full size"><img src="guide-img/follow-stage4.jpg" width="780" height="1688" loading="lazy" alt="A teammate's phone showing Stage 4A confirmed as 4.3 and a button to open the Code Maze."></a><figcaption>A teammate's view once 4A is confirmed.</figcaption></figure>
+      </div>
+
+      <h3 class="stage">🔤 Stage 5 · Find the key words</h3>
+      <div class="duo">
+        <div class="card"><b>Participants</b><ul>
+          <li>Approach you for three crossword puzzles.</li>
+          <li>Solve each one completely, then unscramble its highlighted boxes into a word.</li>
+          <li>Type the three words. A correct word turns green as soon as it is complete, and a wrong one stays red.</li>
+        </ul></div>
+        <div class="card you"><b>You</b><ul>
+          <li>Hand over all three crosswords so the team can split them.</li>
+          <li>The words can go in any of the three boxes, in any order.</li>
+          <li>When all three are green, <span class="ui">Reconstruct the Slides</span> appears.</li>
+        </ul></div>
+      </div>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/stage5.jpg" target="_blank" title="Open full size"><img src="guide-img/stage5.jpg" width="780" height="1688" loading="lazy" alt="Stage 5 with one word in green and one unfinished word in red."></a><figcaption>One word confirmed in green, one still wrong in red.</figcaption></figure>
+      </div>
+
+      <h3 class="stage">🎉 Finale · Slides reconstructed</h3>
+      <div class="duo">
+        <div class="card"><b>Participants</b><ul>
+          <li>See both rebuilt slides: the founding date, their logo drawing and the mission, then the vision and the numbers.</li>
+          <li>See "Completed by" with their team name, their time and the date.</li>
+          <li>Are told to show the screen to you.</li>
+        </ul></div>
+        <div class="card you"><b>You</b><ul>
+          <li><b>Write down the team name and time.</b> Nothing else records it.</li>
+          <li>If you want to keep the logo drawings, take a screenshot or a photo of the screen now.</li>
+          <li>Only then tap <span class="ui">Reset for Next Team</span>. It wipes the time and the photo from that phone.</li>
+        </ul></div>
+      </div>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/finale.jpg" target="_blank" title="Open full size"><img src="guide-img/finale.jpg" width="780" height="2958" loading="lazy" alt="The final screen with a seal, the team's time, their logo drawing and both rebuilt slides."></a><figcaption>The whole final screen. This run was staged for the guide, so the time and the drawing are samples.</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2><span class="n">5</span>Answer key</h2>
+      <p class="lead">Kept closed so it is not on screen by accident. Answers are not case-sensitive.</p>
+      <details class="key">
+        <summary>Show all answers</summary>
+        <div class="tbl"><table>
+          <thead><tr><th>Stage</th><th>Answer</th><th>How it is reached</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Passcode</td><td><span class="ans">0107</span></td><td>Shapes are worth their number of sides, and a circle is 1. 54 + 53 = 107. Read as a date it is 1 July, the day the Board was founded in 1955.</td></tr>
+            <tr><td>Password</td><td><span class="ans">SECUREFUTURE</span></td><td>On the note inside the lock.</td></tr>
+            <tr><td>2 · Email from IT Support</td><td><span class="ans">MISSION</span></td><td>First letter of each of the seven paragraphs.</td></tr>
+            <tr><td>2 · Email from Mr Tang</td><td><span class="ans">VISION</span></td><td>First letter of each of the six paragraphs.</td></tr>
+            <tr><td>3A · Departments</td><td><span class="ans">PCM</span> <span class="ans">HCA</span> <span class="ans">NED</span> <span class="ans">RWD</span> <span class="ans">SLD</span></td><td>Exactly these five. The other 16 codes are decoys, and several differ by one letter (RWG, SLG, NDD).</td></tr>
+            <tr><td>3A · Mission statement</td><td colspan="2">To enable Singaporeans / to have a secure retirement / through lifelong income, / healthcare financing / and home financing.</td></tr>
+            <tr><td>4A · Members</td><td><span class="ans">4.3</span></td><td>From the tool you hand out. Slide text: "serves 4.3 million members".</td></tr>
+            <tr><td>4B · Projects</td><td><span class="ans">30</span></td><td>Shown when the ball reaches the goal in the Code Maze. Slide text: "over 30 national projects".</td></tr>
+            <tr><td>5 · Key words</td><td><span class="ans">TRUSTED</span> <span class="ans">RESPECTED</span> <span class="ans">COMMITTED</span></td><td>One from each crossword, in any order. Vision: "A trusted and respected social security organisation, committed to enable Singaporeans to have a secure retirement."</td></tr>
+          </tbody>
+        </table></div>
+      </details>
+      <div class="tip"><b>Changing an answer or any wording.</b> Every word, answer and code lives in one file, <code>content.js</code>. If you change the lock code or the password there, change the physical lock and the note to match.</div>
+    </section>
+
+    <section id="datarun">
+      <h2><span class="n">6</span>Optional: Data Run</h2>
+      <p class="lead">A separate mini-game that is not part of the five stages. Use it as a side challenge or a tie-breaker, or leave it out.</p>
+      <p>One team member "runs to a far-away storeroom" by reaching a count of 500 on the phone. There are two modes:</p>
+      <div class="grid">
+        <div class="card"><b>🏃 Run Mode</b><p>The phone counts real steps or shakes with its motion sensor. Needs space to move.</p></div>
+        <div class="card"><b>👆 Tap Mode</b><p>Tap RUN to count, and react to JUMP, DUCK and DODGE obstacles. A missed obstacle costs a time penalty. No space needed.</p></div>
+      </div>
+      <p>Finishing shows a certificate with the time and a code, <span class="ans">1955</span>. The phone keeps a list of its own fastest times. Nothing in the main game asks for that code, so decide beforehand what a fast time earns. Open it at <a href="data-run/index.html" target="_blank">data-run/</a>.</p>
+      <div class="shots phone">
+        <figure class="shot"><a href="guide-img/data-run.jpg" target="_blank" title="Open full size"><img src="guide-img/data-run.jpg" width="780" height="1688" loading="lazy" alt="The Data Run start screen with Run and Tap modes."></a><figcaption>Data Run's start screen.</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="shortcuts">
+      <h2><span class="n">7</span>Hidden controls</h2>
+      <p class="lead">Things the app can do that participants are not told about.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Where</th><th>Do this</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td>Any game screen</td><td>Tap <span class="ui">CPFB Induction</span> at the top left <b>10 times</b> quickly</td><td>Asks to confirm, then clears all progress on that phone</td></tr>
+          <tr><td>Welcome and invite screens</td><td>Tap the small <span class="ui">Facilitator: reset progress</span> link at the bottom</td><td>Same reset, with a confirmation</td></tr>
+          <tr><td>Final screen</td><td>Tap <span class="ui">Reset for Next Team</span></td><td>Same reset, with a confirmation</td></tr>
+          <tr><td>Game link</td><td>Add <code>?reset=1</code> to the end of the address</td><td>Resets at once, with <b>no</b> confirmation. Handy as a "clean start" QR code for your own use.</td></tr>
+          <tr><td>Any game screen</td><td>Tap the <span class="ui">👥 CODE</span> badge at the top</td><td>Shows the invite QR code and room code again</td></tr>
+          <tr><td>Any game screen</td><td>Tap <span class="ui">🔊</span> at the top right</td><td>Reads the screen aloud. Tap again to stop. Only shown on phones that support it.</td></tr>
+          <tr><td>Follow page</td><td>Tap <span class="ui">Follow a different team</span></td><td>Forgets the current room and asks for a new code</td></tr>
+          <tr><td>Code Maze</td><td>Tap <span class="ui">↺</span> on the maze</td><td>Recalibrates "level" to how the phone is held right now</td></tr>
+          <tr><td>Code Maze</td><td>Tick <span class="ui">Show sensor debug values</span>, or use <kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> on a laptop</td><td>Shows the raw tilt readings, or lets you test the maze without a phone</td></tr>
+          <tr><td>Data Run</td><td>Press <kbd>Space</kbd> on a laptop</td><td>Counts a step, for testing without a phone</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="after">
+      <h2><span class="n">8</span>Between teams and after</h2>
+      <p class="lead">Progress lives on each leader's phone. A phone that has finished, or half-finished, must be reset before it is used again.</p>
+      <h3>Between teams</h3>
+      <ol class="steps">
+        <li>Record the team name and time from the final screen.</li>
+        <li>Tap <span class="ui">Reset for Next Team</span>. The phone returns to the welcome screen.</li>
+        <li>The next team gets a <b>new room code</b>. Teammates who followed the previous team should scan the new QR code, or tap <span class="ui">Follow a different team</span>.</li>
+        <li>Reset the props: relock the lock with the note inside, and collect the Stage 4A tool, the maze device, the crosswords and the drawings.</li>
+      </ol>
+      <h3>After the session</h3>
+      <ul>
+        <li><b>Nothing personal is kept.</b> There is no login. The only things stored online are each room's code, team nickname and current stage number.</li>
+        <li><b>Photos never leave the phone.</b> The logo photo is saved only in the leader's browser and is erased by a reset.</li>
+        <li><b>Times are not collected anywhere.</b> Your own note of each team's time is the record.</li>
+        <li><b>Old rooms pile up harmlessly</b> in the Firebase project. They can be deleted from the Firebase console under Firestore, in the <code>rooms</code> collection, whenever you like.</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="n">9</span>Troubleshooting</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Problem</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td>The game opens in the middle of a stage, or on someone else's final screen</td><td>The phone still holds an earlier run. Reset it: tap <span class="ui">CPFB Induction</span> 10 times, or use the reset link on the welcome screen.</td></tr>
+          <tr><td>The invite screen says "Setting up your team's room…" and no QR code appears</td><td>The phone cannot reach the live service. Check its connection. The team can still start and play on the one phone. If the room code appears later, the badge at the top shows the QR code.</td></tr>
+          <tr><td>A follower sees "Room not found"</td><td>Recheck the code. Codes are 6 characters and never contain the letters I, L or O, or the digits 0 or 1. Scanning the leader's QR code avoids typing.</td></tr>
+          <tr><td>A follower is stuck on "Connecting…" or an old stage</td><td>Check the follower's connection and reload the page. If several followers lag, the leader's phone has lost its connection. It catches up at the next stage change.</td></tr>
+          <tr><td>Followers hear no chime</td><td>They need to tap their screen once after joining, and take the phone off silent. The page still updates without sound.</td></tr>
+          <tr><td>The team switched to a different phone, or the leader's phone died</td><td>Progress does not move between phones. Start on the new phone and re-enter the answers so far using the <a href="#answers">answer key</a>. The clock restarts, so adjust their time by hand.</td></tr>
+          <tr><td>The leader closed the tab or locked the phone</td><td>Nothing is lost. Reopen the same link in the same browser and the game resumes where it was.</td></tr>
+          <tr><td>The camera will not open at Stage 3B</td><td>Camera access was refused. Allow it in the browser's site settings and tap <span class="ui">Open Camera</span> again.</td></tr>
+          <tr><td>The Code Maze ball does not move</td><td>Motion access was not allowed. Reload the maze, tap <span class="ui">Start</span> and choose Allow. If it still fails, try another phone.</td></tr>
+          <tr><td>The Code Maze ball drifts to one side</td><td>Hold the device level and tap <span class="ui">↺</span>.</td></tr>
+          <tr><td>A screen says "Something went wrong showing this puzzle"</td><td>Tap <span class="ui">Reset My Progress</span> on that screen, then re-enter the answers so far.</td></tr>
+          <tr><td>A team cannot find their second task</td><td>Stages 3 and 4 have a second card below the first. Ask them to scroll down.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="built">
+      <h2><span class="n">10</span>How this app was built</h2>
+      <p class="lead">The escape room was described in plain English and written by an AI coding assistant. Every change in the project's history, about 60 of them between 27 August and 13 November 2026, was made by the assistant. The human side was deciding what the game should be, playing it on real phones, running it with a real team, and saying what to change.</p>
+
+      <h3>The toolkit</h3>
+      <div class="grid two">
+        <div class="card"><b>🤖 Claude Code</b><p>The AI coding assistant. It wrote all of the code, tested it in an automated browser, and took the screenshots on this page.</p></div>
+        <div class="card"><b>🔥 Firebase Firestore</b><p>A small online database. It holds each team's room code and stage number so teammates' phones can follow live.</p></div>
+        <div class="card"><b>🐙 GitHub and GitHub Pages</b><p>Stores every version of the files and serves them as a website. There is nothing to install and no server to run.</p></div>
+        <div class="card"><b>📱 Real phones</b><p>Tilt, shake and camera features cannot be judged from a desk. Each was tuned from what happened on an actual phone.</p></div>
+      </div>
+      <p>The game itself is a handful of plain files: a page, a stylesheet, a script and one file of content. It needs no build step, and only the live following needs a connection once the page has loaded.</p>
+
+      <h3>Then and now</h3>
+      <div class="pairs">
+      <div class="shots phone pair">
+        <figure class="shot"><a href="guide-img/build-v1-welcome.jpg" target="_blank" title="Open full size"><img src="guide-img/build-v1-welcome.jpg" width="780" height="1688" loading="lazy" alt="The first version's welcome screen."></a><figcaption>27 Aug: the first welcome screen. No team name and no invite.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/welcome.jpg" target="_blank" title="Open full size"><img src="guide-img/welcome.jpg" width="780" height="1688" loading="lazy" alt="Today's welcome screen."></a><figcaption>Today: a facilitator notice, the rule on AI, and a team nickname.</figcaption></figure>
+      </div>
+      <div class="shots phone pair">
+        <figure class="shot"><a href="guide-img/build-v1-stage1.jpg" target="_blank" title="Open full size"><img src="guide-img/build-v1-stage1.jpg" width="780" height="1688" loading="lazy" alt="The first version of Stage 1, a list of dates to read."></a><figcaption>27 Aug: Stage 1 was a reading exercise, picking the true date from four.</figcaption></figure>
+        <figure class="shot"><a href="guide-img/stage1.jpg" target="_blank" title="Open full size"><img src="guide-img/stage1.jpg" width="780" height="1688" loading="lazy" alt="Today's Stage 1, a shape puzzle with four digit boxes."></a><figcaption>Today: a picture puzzle with one box per digit.</figcaption></figure>
+      </div>
+      </div>
+
+      <h3>The journey, step by step</h3>
+      <ul class="tl">
+        <li><b class="when">27 Aug</b> First playable version: briefing, five stages and the two rebuilt slides. The same day, Stage 1 became a shape puzzle, the real-departments check was added before the mission statement, and wording that gave answers away was removed.</li>
+        <li><b class="when">29 Aug</b> The room became physical. The logo drawing and photo were added, Stage 4 was split into two facilitator-led challenges, and Stage 5 changed from on-screen anagrams to paper crosswords. Team names, the completion stamp, the read-aloud button and the hidden reset arrived too.</li>
+        <li><b class="when">30 Aug</b> The Code Maze was built as its own page for a second phone and became Stage 4B. Real department codes replaced placeholders.</li>
+        <li><b class="when">31 Aug</b> Data Run was built and tuned over about a dozen rounds of phone testing: step detection, the two modes, and balancing them so neither is clearly faster.</li>
+        <li><b class="when">12 Oct</b> After the first full run with a team, one concern stood out: a single person was doing all the reading. Live following was added, with a room code, an invite QR code and a read-only page for teammates.</li>
+        <li><b class="when">21 Oct</b> A test pass for bugs and spacing. Each stage got its own icon and a line on why its answer matters, and Stage 3A's fixed hint became a count of correct picks.</li>
+        <li><b class="when">6 Nov</b> Followers began seeing Stage 4's answers once the leader confirms them.</li>
+        <li><b class="when">9 Nov</b> One box per digit for the Stage 1 code, a more celebratory final screen, and the invite screen that holds teams until the facilitator's signal.</li>
+        <li><b class="when">13 Nov</b> This guide.</li>
+      </ul>
+
+      <h3>Build your own: a starter recipe</h3>
+      <ol class="steps">
+        <li><b>Write the story and the facts first.</b> What should people know by the end? Each puzzle here exists to deliver one fact.</li>
+        <li><b>Ask for the simplest thing that runs on a phone.</b> A single web page with no installation, and all wording and answers kept in one file you can edit.</li>
+        <li><b>Put it online early.</b> Turn on GitHub Pages so every change is a link you can open on your phone a minute later.</li>
+        <li><b>Play it yourself after every change</b>, and describe what you saw in plain words, with a screenshot where you can.</li>
+        <li><b>Let props do the fun part.</b> The app only checks answers. Locks, drawings, crosswords and a tilting device are what people remember.</li>
+        <li><b>Run it once with a real team</b> before adding anything else, and fix what you observe.</li>
+        <li><b>Ask for a sketch before a big change.</b> Two redesign ideas for this app were mocked up, looked at, and dropped without touching the game.</li>
+      </ol>
+
+      <h3>Example prompts from this build</h3>
+      <p class="lead">Real requests from the conversation, lightly tidied.</p>
+      <div class="prompt"><small>Describing a problem seen in a real run</small>I've run the main flow once with the tilt maze and it ran well, but there was a concern that only one person was doing all the reading and knowing the instructions on one phone. Brainstorm with me: how can I get the main person to scan the QR, name the team and then create a code and room so that everyone else in the team can follow the progress and read the clues on their own device?</div>
+      <div class="prompt"><small>Asking for help in plain terms</small>I need clearer instructions on setting up Firebase on mobile please.</div>
+      <div class="prompt"><small>Reviewing wording line by line</small>Can you pull out all the text lines that look like this, e.g. "Every CPF Board record starts with a date"? It's not really helpful and breaks the immersion where you're trying to crack puzzles to unlock info for the President's visit. Let me review all of them and give you, in numbers, what to drop, keep or refine.</div>
+      <div class="prompt"><small>A small, exact change</small>Drop and replace each wrong-answer hint with only the number of departments they got right.</div>
+      <div class="prompt"><small>Sketch first, build later</small>Don't make changes yet, but I would like to modernise the look of this escape room in line with modern app best practices. Could you sketch out what it could look like first?</div>
+      <div class="prompt"><small>Changing the flow</small>Right after the team naming screen, I need another screen before the game actually starts. It's to show the QR code so that the teammates can all join before the first number puzzle shows. Instead of Done, the button should read "wait for the facilitator instruction before starting".</div>
+
+      <h3>Lessons learned</h3>
+      <ul>
+        <li><b>Watch a real team play.</b> The biggest feature, live following, came from one observation in the first run.</li>
+        <li><b>People do not scroll.</b> Teams kept missing the second task in Stages 3 and 4. A notice on screen helps, and a word from the facilitator helps more.</li>
+        <li><b>Sensors need real hands.</b> The step counter first counted while the phone was simply being held, and was recalibrated from real readings.</li>
+        <li><b>Keep the story intact.</b> Explanatory lines that sounded like a textbook were cut because they broke the feeling of racing to rebuild the slides.</li>
+        <li><b>Hints should narrow, not tell.</b> "3 of your 5 are correct" keeps a team thinking where naming the wrong ones would not.</li>
+        <li><b>Check the venue's network.</b> Live following needs the phones to reach an outside service. The game is built to carry on without it.</li>
+        <li><b>Say no to ideas that do not look right.</b> A side-by-side layout for the split stages was mocked up and rejected in one line.</li>
+      </ul>
+      <div class="tip">The source is at <a href="https://github.com/gcwm-play/inductionescaperoom" target="_blank">github.com/gcwm-play/inductionescaperoom</a>. Start with <code>content.js</code> to see how the wording and answers are kept apart from the code.</div>
+    </section>
+
+    <footer>CPF Board Induction Escape Room · Facilitator guide · Updated 13 November 2026</footer>
+  </main>
+</div>
+
+<script>
+  // Highlight the section being read in the contents list.
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+    if (!('IntersectionObserver' in window) || !links.length) return;
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.remove('on'); });
+        if (byId[e.target.id]) byId[e.target.id].classList.add('on');
+      });
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { io.observe(s); });
+  })();
+</script>
+</body>
+</html>

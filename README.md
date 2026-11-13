@@ -10,6 +10,10 @@ Progress is saved automatically to the phone's `localStorage`, so closing
 the tab, locking the phone, or refreshing never loses a team's place —
 they pick up exactly where they left off.
 
+**Running a session?** See the facilitator guide: [`guide.html`](guide.html)
+(set-up checklist, stage-by-stage flow, answer key, troubleshooting). It
+contains the answers and is deliberately not linked from the game.
+
 ## How it's built
 
 Plain HTML/CSS/JS, no build step, no external dependencies or CDN calls —
