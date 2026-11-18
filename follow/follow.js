@@ -280,18 +280,30 @@
 
   // Stage 4A hint countdown, shared by the leader's phone and the
   // /follow/ page. Fills #s4aHint (if it's on screen) every second: a
-  // countdown until hintDelaySeconds have passed since startMs, then the
-  // hint itself. Re-renders just recreate #s4aHint; this keeps finding it.
+  // countdown to each of challengeA.hints in turn (timed from startMs),
+  // then each hint as it unlocks. Re-renders just recreate #s4aHint; this keeps finding it.
   var hintTimer = null;
   function hintBoxHtml(startMs) {
     return '<div class="hint-box s4a-hint" id="s4aHint">' + hintText(startMs) + "</div>";
   }
   function hintText(startMs) {
     var ch = C.stage4.challengeA;
-    var left = Math.ceil((startMs + ch.hintDelaySeconds * 1000 - Date.now()) / 1000);
-    if (left <= 0) return esc(ch.hint);
-    var m = Math.floor(left / 60), sec = left % 60;
-    return esc(ch.hintCountdownLabel) + ' <b class="s4a-hint__clock">' + m + ":" + (sec < 10 ? "0" : "") + sec + "</b>";
+    var now = Date.now();
+    var unlockAt = startMs;
+    var html = "";
+    for (var i = 0; i < ch.hints.length; i++) {
+      unlockAt += ch.hints[i].afterSeconds * 1000;
+      if (now >= unlockAt) {
+        html += '<p class="s4a-hint__text">' + esc(ch.hints[i].text) + "</p>";
+        continue;
+      }
+      var left = Math.ceil((unlockAt - now) / 1000);
+      var m = Math.floor(left / 60), sec = left % 60;
+      html += '<p class="s4a-hint__countdown">' + esc(i === 0 ? ch.hintCountdownLabel : ch.nextHintCountdownLabel) +
+        ' <b class="s4a-hint__clock">' + m + ":" + (sec < 10 ? "0" : "") + sec + "</b></p>";
+      break;
+    }
+    return html;
   }
   function runHintCountdown(startMs) {
     if (hintTimer) clearInterval(hintTimer);
@@ -489,7 +501,7 @@
       var bodyHtml = challenge.steps
         ? "<ol>" + challenge.steps.map(function (st) { return "<li>" + esc(st) + "</li>"; }).join("") + "</ol>"
         : "<p>" + esc(challenge.prompt) + "</p>";
-      var hintHtml = challenge.hint && !solved ? hintBoxHtml(stage4StartMs()) : "";
+      var hintHtml = challenge.hints && !solved ? hintBoxHtml(stage4StartMs()) : "";
       return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml + revealHtml + hintHtml);
     }
 

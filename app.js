@@ -250,18 +250,30 @@
 
   // Stage 4A hint countdown, shared by the leader's phone and the
   // /follow/ page. Fills #s4aHint (if it's on screen) every second: a
-  // countdown until hintDelaySeconds have passed since startMs, then the
-  // hint itself. Re-renders just recreate #s4aHint; this keeps finding it.
+  // countdown to each of challengeA.hints in turn (timed from startMs),
+  // then each hint as it unlocks. Re-renders just recreate #s4aHint; this keeps finding it.
   var hintTimer = null;
   function hintBoxHtml(startMs) {
     return '<div class="hint-box s4a-hint" id="s4aHint">' + hintText(startMs) + "</div>";
   }
   function hintText(startMs) {
     var ch = C.stage4.challengeA;
-    var left = Math.ceil((startMs + ch.hintDelaySeconds * 1000 - Date.now()) / 1000);
-    if (left <= 0) return esc(ch.hint);
-    var m = Math.floor(left / 60), sec = left % 60;
-    return esc(ch.hintCountdownLabel) + ' <b class="s4a-hint__clock">' + m + ":" + (sec < 10 ? "0" : "") + sec + "</b>";
+    var now = Date.now();
+    var unlockAt = startMs;
+    var html = "";
+    for (var i = 0; i < ch.hints.length; i++) {
+      unlockAt += ch.hints[i].afterSeconds * 1000;
+      if (now >= unlockAt) {
+        html += '<p class="s4a-hint__text">' + esc(ch.hints[i].text) + "</p>";
+        continue;
+      }
+      var left = Math.ceil((unlockAt - now) / 1000);
+      var m = Math.floor(left / 60), sec = left % 60;
+      html += '<p class="s4a-hint__countdown">' + esc(i === 0 ? ch.hintCountdownLabel : ch.nextHintCountdownLabel) +
+        ' <b class="s4a-hint__clock">' + m + ":" + (sec < 10 ? "0" : "") + sec + "</b></p>";
+      break;
+    }
+    return html;
   }
   function runHintCountdown(startMs) {
     if (hintTimer) clearInterval(hintTimer);
@@ -1217,7 +1229,7 @@
         (correct
           ? '<div class="success-banner">Correct.</div>'
           : '<button class="btn btn--primary" id="' + idPrefix + 'Submit" style="margin-top:10px">' + esc(challenge.submitButton) + "</button>") +
-        (challenge.hint && !correct ? hintBoxHtml(pd.startedAt) : "") +
+        (challenge.hints && !correct ? hintBoxHtml(pd.startedAt) : "") +
         "</div>"
       );
     }

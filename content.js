@@ -275,11 +275,21 @@ window.CPF_CONTENT = {
       inputPlaceholder: "",
       answer: "4.3",
       // Shown on both the leader's and followers' phones until 4A is
-      // solved: a countdown first, then the hint once it reaches zero.
-      // The countdown starts when the team reaches Stage 4.
-      hintDelaySeconds: 120,
+      // solved. Each hint unlocks after a countdown: the first one
+      // afterSeconds after the team reaches Stage 4, each later one
+      // afterSeconds after the hint before it. Unlocked hints stay up.
+      hints: [
+        {
+          afterSeconds: 120,
+          text: "Hint: Try walking and looking around the room to find out where to use it, even at another team's area.",
+        },
+        {
+          afterSeconds: 60,
+          text: "Hint: Check behind each team's character board to see if you find the answers (the answer should be a 1-decimal place number)",
+        },
+      ],
       hintCountdownLabel: "Hint unlocks in",
-      hint: "Hint: Try walking and looking around the room to find out where to use it, even at another team's area.",
+      nextHintCountdownLabel: "Next hint unlocks in",
       submitButton: "Submit",
       errorMessage: "That's not right. Try again.",
     },
