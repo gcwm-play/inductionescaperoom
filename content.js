@@ -213,7 +213,7 @@ window.CPF_CONTENT = {
         { code: "LGD", correct: false },
         { code: "RHD", correct: false },
         { code: "MS1", correct: false },
-        { code: "RDD", correct: false },
+        { code: "RVD", correct: false },
         { code: "FPD", correct: false },
         { code: "NDD", correct: false },
         { code: "SND", correct: false },
