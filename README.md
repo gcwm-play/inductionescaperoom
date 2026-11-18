@@ -28,6 +28,10 @@ just open `index.html` or host the folder anywhere static files are served
 
 ## Deploying
 
+After changing `styles.css`, `content.js`, `app.js`, `follow/follow.js` or
+`follow/follow.css`, bump the `?v=` number on their tags in `index.html` and
+`follow/index.html`, so phones fetch the new copy instead of a cached one.
+
 Any static host works. Simplest option, GitHub Pages:
 
 1. Push this repo to GitHub.
