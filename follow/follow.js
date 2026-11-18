@@ -303,6 +303,11 @@
     }, 1000);
   }
 
+  // Same "2 tasks, split up" box the leader's screen shows on Stages 3 and 4.
+  function splitNoticeHtml(text) {
+    return text ? '<div class="notice-box">' + esc(text) + "</div>" : "";
+  }
+
   function card(innerHtml, navy) {
     return '<div class="card' + (navy ? " card--navy" : "") + '">' + innerHtml + "</div>";
   }
@@ -392,10 +397,14 @@
   function renderStage3Dept(wrap) {
     var s = C.stage3;
     var dc = s.deptChallenge;
-    var deptHtml = dc.departments
+    // Same shuffled order as the leader's screen. Listing them in
+    // content.js order would put the 5 real departments first.
+    var deptHtml = seededTileOrder(dc.departments.length, (currentRoomCode || "") + ":dept")
+      .map(function (i) { return dc.departments[i]; })
       .map(function (d) { return '<label class="dept-item"><span class="dept-code">' + esc(d.code) + "</span></label>"; })
       .join("");
     wrap.innerHTML =
+      splitNoticeHtml(s.splitNotice) +
       card(
         (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
         stageHeading(s.icon, dc.title || s.title) +
@@ -489,6 +498,7 @@
       .replace("{projects}", bOk ? s.challengeB.answer : "__");
 
     wrap.innerHTML =
+      splitNoticeHtml(s.splitNotice) +
       card(stageHeading(s.icon, s.title) + "<p>" + esc(s.intro) + "</p>") +
       challengeCard(s.challengeA, aOk) +
       challengeCard(s.challengeB, bOk) +

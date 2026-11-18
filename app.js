@@ -906,7 +906,11 @@
     var dc = s.deptChallenge;
 
     if (!pd.deptShuffled) {
-      pd.deptShuffled = shuffle(dc.departments.map(function (_, i) { return i; }));
+      // Seeded by the room code so the follow page lists the folders in
+      // the same order (see seededTileOrder).
+      pd.deptShuffled = state.roomCode
+        ? seededTileOrder(dc.departments.length, state.roomCode + ":dept")
+        : shuffle(dc.departments.map(function (_, i) { return i; }));
       save();
     }
 
@@ -1219,6 +1223,7 @@
     }
 
     wrap.innerHTML =
+      (s.splitNotice ? '<div class="notice-box">' + esc(s.splitNotice) + "</div>" : "") +
       '<div class="card">' +
       stageHeading(s.icon, s.title) +
       "<p>" + esc(s.intro) + "</p>" +

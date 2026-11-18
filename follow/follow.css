@@ -39,7 +39,7 @@
 .follow-status--live { background: rgba(30, 142, 90, 0.18); border-color: var(--green); color: #a9f0cf; }
 .follow-status--bad { background: rgba(194, 59, 59, 0.18); border-color: var(--red); color: #ffb3b3; }
 
-.follow-body { padding: 0 20px 24px; }
+.follow-body { padding: 0 20px 24px; display: flex; flex-direction: column; gap: 16px; }
 
 .follow-join-wrap {
   padding: 24px 20px;

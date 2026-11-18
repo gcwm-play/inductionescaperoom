@@ -264,6 +264,8 @@ window.CPF_CONTENT = {
     title: "Stage 4 - The Numbers",
     intro:
       "Slide 2 has missing figures, and numbers like these are exactly what President Tharman will ask about. Split the challenges below between your team members. Solve each challenge and key in your answers to progress.",
+    // Shown at the top of Stage 4, same as Stage 3's splitNotice.
+    splitNotice: "This stage has 2 tasks — please split the work between your team members.",
     summaryTemplate: "CPF Board serves {members} million members through over {projects} national projects.",
     continueButton: "Continue",
     challengeA: {
