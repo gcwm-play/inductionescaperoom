@@ -285,7 +285,7 @@ window.CPF_CONTENT = {
         },
         {
           afterSeconds: 60,
-          text: "Hint: Check behind each team's character board to see if you find the answers (the answer should be a 1-decimal place number)",
+          text: "Hint: Check behind each team's character board to see if you can find the answers (the answer should be a 1-decimal place number).",
         },
       ],
       hintCountdownLabel: "Hint unlocks in",
