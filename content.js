@@ -272,6 +272,12 @@ window.CPF_CONTENT = {
       inputLabel: "Your answer",
       inputPlaceholder: "",
       answer: "4.3",
+      // Shown on both the leader's and followers' phones until 4A is
+      // solved: a countdown first, then the hint once it reaches zero.
+      // The countdown starts when the team reaches Stage 4.
+      hintDelaySeconds: 120,
+      hintCountdownLabel: "Hint unlocks in",
+      hint: "Hint: Try walking and looking around the room to find out where to use it, even at another team's area.",
       submitButton: "Submit",
       errorMessage: "That's not right. Try again.",
     },

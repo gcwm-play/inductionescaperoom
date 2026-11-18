@@ -705,3 +705,7 @@ input.word-input--correct { color: var(--green); font-weight: 800; border-color:
   font-size: 0.74rem !important;
   margin: 10px 0 0 !important;
 }
+
+/* Stage 4A timed hint (leader and follow page) */
+.s4a-hint { margin-top: 12px; }
+.s4a-hint__clock { font-variant-numeric: tabular-nums; color: var(--ink); }

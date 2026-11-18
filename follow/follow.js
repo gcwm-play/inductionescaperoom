@@ -16,6 +16,8 @@
   var app = document.getElementById("app");
   var unsubscribe = null;
   var lastSeenStageIndex = null;
+  var currentRoomCode = null;
+  var S4_START_KEY = "cpf_follow_s4start_v1";
 
   function esc(str) {
     var d = document.createElement("div");
@@ -161,6 +163,7 @@
   function startFollowing(code) {
     primeAudio();
     rememberRoomCode(code);
+    currentRoomCode = code;
     if (unsubscribe) unsubscribe();
     lastSeenStageIndex = null; // reset so the first snapshot for this room never chimes
     renderShell(null, 0, "connecting");
@@ -172,6 +175,7 @@
           playStageChime();
         }
         lastSeenStageIndex = stageIndex;
+        noteStage4Start(data, stageIndex);
         renderShell(data, stageIndex, "live");
       },
       function () {
@@ -243,6 +247,60 @@
       case 9: return renderFinale(wrap);
       default: return renderWelcome(wrap);
     }
+  }
+
+  // Mission-tile order shared by the leader's phone and the /follow/
+  // page: a shuffle seeded by the room code, so teammates see the
+  // phrases scrambled in exactly the same order as the leader. Keep this
+  // identical to seededTileOrder() in the other file.
+  function seededTileOrder(count, seedText) {
+    var h = 2166136261;
+    for (var k = 0; k < seedText.length; k++) {
+      h ^= seedText.charCodeAt(k);
+      h = Math.imul(h, 16777619);
+    }
+    var seed = h >>> 0;
+    function rand() {
+      seed = (seed + 0x6d2b79f5) >>> 0;
+      var t = seed;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    var a = [];
+    for (var n = 0; n < count; n++) a.push(n);
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(rand() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    // Never hand out the phrases already in the right order.
+    if (a.every(function (v, idx) { return v === idx; })) a.push(a.shift());
+    return a;
+  }
+
+  // Stage 4A hint countdown, shared by the leader's phone and the
+  // /follow/ page. Fills #s4aHint (if it's on screen) every second: a
+  // countdown until hintDelaySeconds have passed since startMs, then the
+  // hint itself. Re-renders just recreate #s4aHint; this keeps finding it.
+  var hintTimer = null;
+  function hintBoxHtml(startMs) {
+    return '<div class="hint-box s4a-hint" id="s4aHint">' + hintText(startMs) + "</div>";
+  }
+  function hintText(startMs) {
+    var ch = C.stage4.challengeA;
+    var left = Math.ceil((startMs + ch.hintDelaySeconds * 1000 - Date.now()) / 1000);
+    if (left <= 0) return esc(ch.hint);
+    var m = Math.floor(left / 60), sec = left % 60;
+    return esc(ch.hintCountdownLabel) + ' <b class="s4a-hint__clock">' + m + ":" + (sec < 10 ? "0" : "") + sec + "</b>";
+  }
+  function runHintCountdown(startMs) {
+    if (hintTimer) clearInterval(hintTimer);
+    hintTimer = setInterval(function () {
+      var el = document.getElementById("s4aHint");
+      if (!el) { clearInterval(hintTimer); hintTimer = null; return; }
+      var html = hintText(startMs);
+      if (el.innerHTML !== html) el.innerHTML = html;
+    }, 1000);
   }
 
   function card(innerHtml, navy) {
@@ -366,7 +424,11 @@
 
   function renderStage3Tiles(wrap) {
     var s = C.stage3;
-    var tilesHtml = s.tiles.map(function (t) { return '<button class="tile" disabled>' + esc(t) + "</button>"; }).join("");
+    // Scrambled in the same order as the leader's screen (seeded by the
+    // room code), never in the correct order.
+    var tilesHtml = seededTileOrder(s.tiles.length, currentRoomCode || "")
+      .map(function (i) { return '<button class="tile" disabled>' + esc(s.tiles[i]) + "</button>"; })
+      .join("");
     var correctDeptCodes = s.deptChallenge.departments
       .filter(function (d) { return d.correct; })
       .map(function (d) { return d.code; })
@@ -418,7 +480,8 @@
       var bodyHtml = challenge.steps
         ? "<ol>" + challenge.steps.map(function (st) { return "<li>" + esc(st) + "</li>"; }).join("") + "</ol>"
         : "<p>" + esc(challenge.prompt) + "</p>";
-      return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml + revealHtml);
+      var hintHtml = challenge.hint && !solved ? hintBoxHtml(stage4StartMs()) : "";
+      return card('<span class="eyebrow">' + esc(challenge.label) + "</span>" + bodyHtml + revealHtml + hintHtml);
     }
 
     var summary = s.summaryTemplate
@@ -430,6 +493,33 @@
       challengeCard(s.challengeA, aOk) +
       challengeCard(s.challengeB, bOk) +
       card('<div class="number-summary">' + esc(summary) + "</div>", true);
+    if (!aOk) runHintCountdown(stage4StartMs());
+  }
+
+  // When this team reached Stage 4, for the 4A hint countdown. If the
+  // snapshot is the one that moved the room to Stage 4 (stageIndex
+  // exactly 7), its server timestamp is the true start, matching the
+  // leader's clock. Otherwise (joined mid-stage) fall back to the first
+  // time this phone saw Stage 4. Remembered per room so a reload
+  // doesn't restart the countdown.
+  function noteStage4Start(data, stageIndex) {
+    if (stageIndex < 7 || stageIndex >= 8) return;
+    var saved = readStage4Start();
+    var fromServer = stageIndex === 7 && data.updatedAt && data.updatedAt.toMillis ? data.updatedAt.toMillis() : null;
+    if (saved && !fromServer) return;
+    try {
+      localStorage.setItem(S4_START_KEY, JSON.stringify({ room: currentRoomCode, t: fromServer || (saved || Date.now()) }));
+    } catch (e) { /* storage unavailable: countdown runs from page load */ }
+  }
+  function readStage4Start() {
+    try {
+      var v = JSON.parse(localStorage.getItem(S4_START_KEY) || "null");
+      return v && v.room === currentRoomCode ? v.t : null;
+    } catch (e) { return null; }
+  }
+  var pageLoadedAt = Date.now();
+  function stage4StartMs() {
+    return readStage4Start() || pageLoadedAt;
   }
 
   function renderStage5(wrap) {

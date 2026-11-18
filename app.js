@@ -82,7 +82,7 @@
           shuffled: null,
         },
         stage3b: { done: false },
-        stage4: { a: "", b: "" },
+        stage4: { a: "", b: "", startedAt: null },
         stage5: { inputs: ["", "", ""] },
       },
     };
@@ -219,6 +219,60 @@
   // ---------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------
+  // Mission-tile order shared by the leader's phone and the /follow/
+  // page: a shuffle seeded by the room code, so teammates see the
+  // phrases scrambled in exactly the same order as the leader. Keep this
+  // identical to seededTileOrder() in the other file.
+  function seededTileOrder(count, seedText) {
+    var h = 2166136261;
+    for (var k = 0; k < seedText.length; k++) {
+      h ^= seedText.charCodeAt(k);
+      h = Math.imul(h, 16777619);
+    }
+    var seed = h >>> 0;
+    function rand() {
+      seed = (seed + 0x6d2b79f5) >>> 0;
+      var t = seed;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    var a = [];
+    for (var n = 0; n < count; n++) a.push(n);
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(rand() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    // Never hand out the phrases already in the right order.
+    if (a.every(function (v, idx) { return v === idx; })) a.push(a.shift());
+    return a;
+  }
+
+  // Stage 4A hint countdown, shared by the leader's phone and the
+  // /follow/ page. Fills #s4aHint (if it's on screen) every second: a
+  // countdown until hintDelaySeconds have passed since startMs, then the
+  // hint itself. Re-renders just recreate #s4aHint; this keeps finding it.
+  var hintTimer = null;
+  function hintBoxHtml(startMs) {
+    return '<div class="hint-box s4a-hint" id="s4aHint">' + hintText(startMs) + "</div>";
+  }
+  function hintText(startMs) {
+    var ch = C.stage4.challengeA;
+    var left = Math.ceil((startMs + ch.hintDelaySeconds * 1000 - Date.now()) / 1000);
+    if (left <= 0) return esc(ch.hint);
+    var m = Math.floor(left / 60), sec = left % 60;
+    return esc(ch.hintCountdownLabel) + ' <b class="s4a-hint__clock">' + m + ":" + (sec < 10 ? "0" : "") + sec + "</b>";
+  }
+  function runHintCountdown(startMs) {
+    if (hintTimer) clearInterval(hintTimer);
+    hintTimer = setInterval(function () {
+      var el = document.getElementById("s4aHint");
+      if (!el) { clearInterval(hintTimer); hintTimer = null; return; }
+      var html = hintText(startMs);
+      if (el.innerHTML !== html) el.innerHTML = html;
+    }, 1000);
+  }
+
   function shuffle(arr) {
     var a = arr.slice();
     for (var i = a.length - 1; i > 0; i--) {
@@ -948,9 +1002,15 @@
 
     if (!pd.shuffled) {
       var order = s.tiles.map(function (_, i) { return i; });
-      var shuf = shuffle(order);
-      // avoid trivially-already-correct shuffle
-      if (shuf.join(",") === order.join(",")) shuf = shuffle(order);
+      var shuf;
+      if (state.roomCode) {
+        // Same order the follow page shows teammates.
+        shuf = seededTileOrder(s.tiles.length, state.roomCode);
+      } else {
+        shuf = shuffle(order);
+        // avoid trivially-already-correct shuffle
+        if (shuf.join(",") === order.join(",")) shuf = shuffle(order);
+      }
       pd.shuffled = shuf;
       save();
     }
@@ -1123,6 +1183,10 @@
   function renderStage4(wrap) {
     var s = C.stage4;
     var pd = state.progressData.stage4;
+    if (!pd.startedAt) {
+      pd.startedAt = Date.now();
+      save();
+    }
 
     var aCorrect = pd.a !== "" && !isNaN(parseFloat(pd.a)) && parseFloat(pd.a) === parseFloat(s.challengeA.answer);
     var bCorrect = pd.b !== "" && !isNaN(parseInt(pd.b, 10)) && parseInt(pd.b, 10) === parseInt(s.challengeB.answer, 10);
@@ -1149,6 +1213,7 @@
         (correct
           ? '<div class="success-banner">Correct.</div>'
           : '<button class="btn btn--primary" id="' + idPrefix + 'Submit" style="margin-top:10px">' + esc(challenge.submitButton) + "</button>") +
+        (challenge.hint && !correct ? hintBoxHtml(pd.startedAt) : "") +
         "</div>"
       );
     }
@@ -1168,6 +1233,7 @@
       "</div>";
 
     if (!aCorrect) {
+      runHintCountdown(pd.startedAt);
       document.getElementById("s4aSubmit").addEventListener("click", function () {
         var val = document.getElementById("s4aInput").value.trim();
         pd.a = val;
