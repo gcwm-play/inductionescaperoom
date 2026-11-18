@@ -337,8 +337,6 @@
     var deptHtml = dc.departments
       .map(function (d) { return '<label class="dept-item"><span class="dept-code">' + esc(d.code) + "</span></label>"; })
       .join("");
-    var lt = s.logoTask;
-    var cluesHtml = lt.clues.map(function (c) { return '<div class="clue-item">' + esc(c) + "</div>"; }).join("");
     wrap.innerHTML =
       card(
         (dc.eyebrow ? '<span class="eyebrow">' + esc(dc.eyebrow) + "</span>" : "") +
@@ -347,14 +345,23 @@
         "<p>" + esc(dc.instructions) + "</p>" +
         '<div class="dept-grid follow-dept-grid">' + deptHtml + "</div>"
       ) +
-      card(
-        '<span class="eyebrow">' + esc(lt.eyebrow) + "</span>" +
-        "<h3>" + esc(lt.heading) + "</h3>" +
-        "<p>" + esc(lt.intro) + "</p>" +
-        '<div class="clue-list">' + cluesHtml + "</div>" +
-        "<p>" + esc(lt.note) + "</p>",
-        true
-      );
+      logoTaskCard();
+  }
+
+  // The 3B logo description stays on followers' phones through the rest
+  // of Stage 3 (tiles, and the photo step), since whoever is drawing is
+  // usually a follower and may still need it after the leader solves 3A.
+  function logoTaskCard() {
+    var lt = C.stage3.logoTask;
+    var cluesHtml = lt.clues.map(function (c) { return '<div class="clue-item">' + esc(c) + "</div>"; }).join("");
+    return card(
+      '<span class="eyebrow">' + esc(lt.eyebrow) + "</span>" +
+      "<h3>" + esc(lt.heading) + "</h3>" +
+      "<p>" + esc(lt.intro) + "</p>" +
+      '<div class="clue-list">' + cluesHtml + "</div>" +
+      "<p>" + esc(lt.note) + "</p>",
+      true
+    );
   }
 
   function renderStage3Tiles(wrap) {
@@ -370,7 +377,7 @@
       "<p>" + esc(s.intro) + "</p>" +
       '<div class="field-label">Phrases to piece together (not shown in order)</div>' +
       '<div class="tile-row">' + tilesHtml + "</div>"
-    );
+    ) + logoTaskCard();
   }
 
   function renderStage3b(wrap) {
@@ -379,7 +386,7 @@
       stageHeading(s.icon, s.title) +
       '<p class="follow-waiting">Your team is photographing their logo drawing now…</p>',
       true
-    );
+    ) + logoTaskCard();
   }
 
   // view is 7 (neither solved), 7.1 (A only), 7.2 (B only), or 7.3
