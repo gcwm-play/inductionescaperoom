@@ -11,7 +11,14 @@
  * CPFRoomSync at that point, only from later event handlers.
  *
  * Firestore document shape, collection "rooms", doc id = room code:
- *   { teamName: string, stageIndex: number, createdAt, updatedAt }
+ *   { teamName: string, stageIndex: number, createdAt, updatedAt, expiresAt }
+ *
+ * expiresAt lets a Firestore TTL policy delete old rooms automatically
+ * (Firestore -> TTL -> collection group "rooms", field "expiresAt"). It is
+ * set once, at creation, to ROOM_TTL_DAYS ahead: a session lasts a couple
+ * of hours, so this leaves a wide margin and a room is never deleted while
+ * a team is still playing. Rooms created before this field existed have no
+ * expiresAt and are never deleted automatically.
  * Deliberately minimal — puzzle text itself lives in content.js on every
  * device already; only "which stage is the team on" needs to sync.
  */
@@ -46,6 +53,9 @@ function generateRoomCode() {
   return code;
 }
 
+// 2 days for the session and any follow-up, plus a 2-day buffer.
+var ROOM_TTL_DAYS = 4;
+
 async function createRoom(teamName) {
   var database = ensureDb();
   var code = generateRoomCode();
@@ -55,6 +65,7 @@ async function createRoom(teamName) {
     stageIndex: 0,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    expiresAt: new Date(Date.now() + ROOM_TTL_DAYS * 24 * 60 * 60 * 1000),
   });
   return code;
 }

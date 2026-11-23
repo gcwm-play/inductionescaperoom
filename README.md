@@ -40,6 +40,17 @@ Any static host works. Simplest option, GitHub Pages:
 
 Or just `python3 -m http.server` from this folder for local testing.
 
+## Follow-along rooms (Firebase) and cleanup
+
+The follow-along feature keeps one small Firestore document per team in the `rooms` collection
+(project `cpf-induction-escape-room`; see `room-sync.js`). Each room gets an `expiresAt` date
+4 days after it's created (2 days plus a 2-day buffer), long after any session ends.
+
+To have Firestore delete old rooms automatically (one time): Firebase console → **Firestore
+Database** → **TTL** → **Create policy**, collection group `rooms`, timestamp field `expiresAt`.
+Rooms created before this field was added have none and stay until deleted by hand. Leftover rooms
+are only a few hundred bytes each, so skipping cleanup costs nothing and breaks nothing.
+
 ## Game flow
 
 | Stage | What happens | Answer lives in |
