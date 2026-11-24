@@ -67,6 +67,10 @@
       roomCode: null,
       // Which start/finish times have reached the room doc (syncRoomTimes).
       roomTimesSent: null,
+      // Stage number -> when it was completed (see recordSplits), and the
+      // last splits written to the room.
+      splits: {},
+      roomSplitsSent: null,
       // True between tapping "Begin the Rebuild" and actually starting
       // Stage 1 — shows the team-invite QR screen so everyone can join
       // before the facilitator gives the go-ahead. currentView stays 0
@@ -153,6 +157,7 @@
     state.maxUnlocked = Math.max(state.maxUnlocked, view);
     if (view >= 1 && !state.startedAt) state.startedAt = Date.now();
     if (view >= 9 && !state.completedAt) state.completedAt = Date.now();
+    recordSplits(view);
     state.currentView = view;
     save();
     syncRoomStage(view);
@@ -179,7 +184,41 @@
   // write is refused, nothing else is affected, and it's retried at the
   // next stage change.
   var roomTimesInFlight = false;
+  // When each of the 5 stages was completed (ms timestamps), for the
+  // facilitator scoreboard's split times. A stage counts as completed
+  // when the view that follows it is first reached: Stage 1 at Stage 2
+  // (view 4, after the password), Stage 2 at view 5, Stage 3 at view 7,
+  // Stage 4 at view 8, Stage 5 at the finale (view 9).
+  var STAGE_DONE_AT_VIEW = { 1: 4, 2: 5, 3: 7, 4: 8, 5: 9 };
+  function recordSplits(view) {
+    state.splits = state.splits || {};
+    Object.keys(STAGE_DONE_AT_VIEW).forEach(function (n) {
+      if (view >= STAGE_DONE_AT_VIEW[n] && !state.splits[n]) state.splits[n] = Date.now();
+    });
+  }
+
+  // Splits go in a write of their own, so that if the Firestore rules
+  // don't allow the splits field yet, the start/finish times still land.
+  var splitsInFlight = false;
+  function syncRoomSplits() {
+    if (!state.roomCode || !window.CPFRoomSync || !window.CPFRoomSync.setRoomTimes || splitsInFlight) return;
+    var splits = state.splits || {};
+    var json = JSON.stringify(splits);
+    if (!Object.keys(splits).length || state.roomSplitsSent === json) return;
+    splitsInFlight = true;
+    window.CPFRoomSync.setRoomTimes(state.roomCode, { splits: splits })
+      .then(function () {
+        state.roomSplitsSent = json;
+        save();
+      })
+      .catch(function (e) {
+        console.warn("room-sync: couldn't record splits (rules not updated yet?)", e);
+      })
+      .then(function () { splitsInFlight = false; });
+  }
+
   function syncRoomTimes() {
+    syncRoomSplits();
     if (!state.roomCode || !window.CPFRoomSync || !window.CPFRoomSync.setRoomTimes || roomTimesInFlight) return;
     var sent = state.roomTimesSent || {};
     var times = {};

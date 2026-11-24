@@ -240,6 +240,7 @@
         <li><b>Who appears.</b> Every team whose leader has named the team in the game today, in the order they are ranked: furthest along first, then whoever got there first. Finished teams are ranked by time.</li>
         <li><b>The figures.</b> Each team's stick figure stands at the start line until the team begins, thinks with a "?" while working on a stage, jumps with surprise when they solve one, runs to the next stage, stumbles if another team overtakes them, and celebrates at the flag when they finish. Its speech bubble says what the team is doing ("Decoding…", "Steering the maze…") without giving away any answers.</li>
         <li><b>Announcements.</b> A banner such as "Team Kaya Toast has solved Stage 1!" appears for each step, and the strip at the bottom keeps the latest ones. Tap <span class="ui">🔕 Sound off</span> to turn on a chime with each banner.</li>
+        <li><b>Split times.</b> Under each stage on the track is the team's time when they completed it (Stage 1 counts as done once the password is in).</li>
         <li><b>Timers</b> run from the moment the leader taps the gold start button, and stop at the final screen, matching the time on the team's own phone. A team whose phone hasn't moved on for 90 minutes is marked Inactive and its timer stops.</li>
         <li><b>Full screen.</b> Tap <span class="ui">⛶</span> at the top right.</li>
       </ul>
@@ -247,10 +248,10 @@
       <p>Tap <span class="ui">⚙ Teams</span>. <span class="ui">Drop</span> takes a team off the board, for example one created by mistake or by someone testing. Dropped teams are listed underneath with <span class="ui">Restore</span>. To add a team that isn't showing, such as one started on another day, type its 6-character room code (shown in the 👥 badge on the leader's phone) and tap <span class="ui">Add team</span>.</p>
       <div class="tip"><b>Rehearse or test the projector</b> with <a href="scoreboard/index.html?demo=1" target="_blank">scoreboard/?demo=1</a>. Four made-up teams play themselves, and nothing is read or written online. To look back at another day, add <code>?date=2026-11-24</code> (that day's date) to the address.</div>
       <h3>One-time set-up: update the Firebase rules</h3>
-      <p>Without this the scoreboard still works, but timers are estimates (marked ≈) and a dropped team is only hidden on the screen where you dropped it. To fix both:</p>
+      <p>Without this the scoreboard still works, but timers are estimates (marked ≈), split times only appear while the scoreboard is open to see each stage completed, and a dropped team is only hidden on the screen where you dropped it. To fix all three:</p>
       <ol class="steps">
         <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase console</a>, choose the escape room project, then <span class="ui">Firestore Database</span> and the <span class="ui">Rules</span> tab.</li>
-        <li>Find the line starting <code>allow update</code> and replace it (with the line after it) so it reads:<br><code>allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stageIndex','updatedAt','startedAtMs','finishedAtMs','hidden']);</code></li>
+        <li>Find the line starting <code>allow update</code> and replace it (with the line after it) so it reads:<br><code>allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stageIndex','updatedAt','startedAtMs','finishedAtMs','splits','hidden']);</code></li>
         <li>Tap <span class="ui">Publish</span>. Teams that start after this get exact timers.</li>
       </ol>
     </section>

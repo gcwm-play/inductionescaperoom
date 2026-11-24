@@ -159,6 +159,44 @@
       return { added: v.added || [], dropped: v.dropped || [] };
     } catch (e) { return { added: [], dropped: [] }; }
   }
+  // Split times the scoreboard saw happen itself, for teams whose phone
+  // doesn't report them (an older copy of the game, or rules not yet
+  // updated): { roomCode: { stageNumber: ms } }, kept on this device.
+  var SPLITS_KEY = "cpf_scoreboard_splits_v1";
+  var seenSplits = (function () {
+    try { return JSON.parse(localStorage.getItem(SPLITS_KEY) || "{}"); } catch (e) { return {}; }
+  })();
+  function saveSeenSplits() {
+    try { localStorage.setItem(SPLITS_KEY, JSON.stringify(seenSplits)); } catch (e) { /* this session only */ }
+  }
+  // A stage counts as completed when the team first reaches the view
+  // after it (same rule as app.js's recordSplits).
+  var STAGE_DONE_AT = { 1: 4, 2: 5, 3: 7, 4: 8, 5: 9 };
+  function noteSeenSplits(room, prev, si) {
+    var when = ms(room.updatedAt) || Date.now();
+    Object.keys(STAGE_DONE_AT).forEach(function (n) {
+      if (prev < STAGE_DONE_AT[n] && si >= STAGE_DONE_AT[n]) {
+        seenSplits[room.code] = seenSplits[room.code] || {};
+        if (!seenSplits[room.code][n]) seenSplits[room.code][n] = when;
+      }
+    });
+    saveSeenSplits();
+  }
+  // Stage number -> elapsed ms at completion, preferring what the
+  // leader's phone reported.
+  function splitTimes(room) {
+    // Same start the lane's timer uses (see timing()).
+    var start = room.startedAtMs || ms(room.createdAt);
+    var approx = !room.startedAtMs;
+    var reported = room.splits || {}, seen = seenSplits[room.code] || {};
+    var out = {};
+    for (var n = 1; n <= 5; n++) {
+      var at = reported[n] || seen[n] || (n === 5 && room.finishedAtMs) || null;
+      if (at && start) out[n] = { ms: Math.max(0, at - start), approx: approx };
+    }
+    return out;
+  }
+
   function saveStore() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* private mode: this screen only */ }
   }
@@ -259,7 +297,7 @@
     node.className = "lane";
     node.style.setProperty("--team", color);
     var zonesHtml = ZONES.map(function (z, i) {
-      return '<div class="track__zone" data-zone="' + i + '">' + z.icon + ' <span class="track__zone-name">' + (i + 1) + " · " + esc(z.name) + "</span></div>";
+      return '<div class="track__zone" data-zone="' + i + '"><div>' + z.icon + ' <span class="track__zone-name">' + (i + 1) + " · " + esc(z.name) + '</span></div><div class="track__zone-split"></div></div>';
     }).join("");
     var pipsHtml = [20, 40, 60, 80].map(function (p, i) {
       return '<span class="track__pip" data-pip="' + i + '" style="left:' + p + '%"></span>';
@@ -289,6 +327,7 @@
       bubble: node.querySelector(".runner__bubble"),
       pips: node.querySelectorAll(".track__pip"),
       zones: node.querySelectorAll(".track__zone"),
+      splits: node.querySelectorAll(".track__zone-split"),
       shownStage: null,
       shownRank: null,
       verb: "",
@@ -400,6 +439,16 @@
     }
     updateBubble(refs, si);
     updateTimer(refs, room);
+    updateSplits(refs, room);
+  }
+
+  function updateSplits(refs, room) {
+    var sp = splitTimes(room);
+    Array.prototype.forEach.call(refs.splits, function (el, i) {
+      var v = sp[i + 1];
+      var text = v ? (v.approx ? "≈" : "") + fmtDuration(v.ms) : "";
+      if (el.textContent !== text) el.textContent = text;
+    });
   }
 
   function updateBubble(refs, si) {
@@ -446,6 +495,7 @@
     rooms.forEach(function (room) {
       var si = room.stageIndex || 0;
       var prev = lastStage[room.code];
+      if (prev !== undefined && si > prev) noteSeenSplits(room, prev, si);
       if (firstDataSeen && prev !== undefined && si > prev) {
         var a = announcement(prev, si, room.teamName || room.code);
         if (a) announce(a, room);
@@ -736,6 +786,10 @@
       var started = now - (14 + i * 3) * 60000 - i * 17000;
       var room = { code: "DEMO" + String.fromCharCode(65 + i) + "Z", teamName: n, stageIndex: path[step], createdAt: started - 60000, updatedAt: now - i * 20000, startedAtMs: step ? started : null, _step: step };
       if (i === 1) room._alt = true;
+      // Made-up splits for the stages this team has already done.
+      room.splits = {};
+      var done = Object.keys(STAGE_DONE_AT).filter(function (k) { return path[step] >= STAGE_DONE_AT[k]; });
+      done.forEach(function (k, idx) { room.splits[k] = started + Math.round((now - started) * (idx + 1) / (done.length + 1.3)); });
       return room;
     });
     demo.forEach(function (r) { dayRooms[r.code] = r; });
@@ -748,6 +802,9 @@
       r._step++;
       var si = path[r._step];
       if (si === 7.1 && r._alt) si = 7.2;
+      Object.keys(STAGE_DONE_AT).forEach(function (k) {
+        if (r.stageIndex < STAGE_DONE_AT[k] && si >= STAGE_DONE_AT[k]) r.splits[k] = Date.now();
+      });
       r.stageIndex = si;
       r.updatedAt = Date.now();
       if (si >= 1 && !r.startedAtMs) r.startedAtMs = Date.now();

@@ -12,7 +12,7 @@
  *
  * Firestore document shape, collection "rooms", doc id = room code:
  *   { teamName: string, stageIndex: number, createdAt, updatedAt, expiresAt,
- *     startedAtMs?, finishedAtMs?, hidden? }
+ *     startedAtMs?, finishedAtMs?, splits?, hidden? }
  *
  * expiresAt lets a Firestore TTL policy delete old rooms automatically
  * (Firestore -> TTL -> collection group "rooms", field "expiresAt"). It is
@@ -23,8 +23,9 @@
  *
  * startedAtMs/finishedAtMs are the leader phone's own clock readings
  * (the same ones its finale screen uses), for the facilitator
- * scoreboard's timers. hidden is set from the scoreboard to drop a team
- * created by mistake. All three need the updated Firestore rules (see
+ * scoreboard's timers; splits maps stage number (1-5) to when that stage
+ * was completed, for its split times. hidden is set from the scoreboard to drop a team
+ * created by mistake. These need the updated Firestore rules (see
  * the facilitator guide); without them those writes are refused and
  * everything else carries on as before.
  * Deliberately minimal — puzzle text itself lives in content.js on every

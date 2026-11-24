@@ -14,8 +14,8 @@
   --green: #3ccf8e;
   --red: #ff7a7a;
   --radius: 16px;
-  --fig-w: 106px;  /* the stick figure (90 x 112 drawing) */
-  --fig-h: 132px;
+  --fig-w: 92px;  /* the stick figure (90 x 112 drawing) */
+  --fig-h: 114px;
   --card: #f7f4ec;
   --card-ink: #17233b;
   --card-soft: #5a6479;
@@ -150,7 +150,7 @@ button { font: inherit; }
 .track { position: relative; height: 100%; min-height: 200px; }
 .track__inner { position: absolute; left: 30px; right: 56px; top: 0; bottom: 0; }
 .track__road {
-  position: absolute; left: 0; right: 0; bottom: 34px; height: 14px; border-radius: 7px;
+  position: absolute; left: 0; right: 0; bottom: 56px; height: 14px; border-radius: 7px;
   background:
     repeating-linear-gradient(90deg, rgba(23, 35, 59, 0.18) 0 12px, transparent 12px 24px) center / 100% 2px no-repeat,
     #e6dfcd;
@@ -169,31 +169,36 @@ button { font: inherit; }
 }
 @keyframes fill-shine { from { background-position: -70px 0; } to { background-position: calc(100% + 70px) 0; } }
 .track__start {
-  position: absolute; left: -5px; bottom: 30px; width: 5px; height: 22px; border-radius: 2px;
+  position: absolute; left: -5px; bottom: 52px; width: 5px; height: 22px; border-radius: 2px;
   background: repeating-linear-gradient(180deg, var(--card-ink) 0 5px, #fff 5px 10px);
 }
 .track__pip {
-  position: absolute; bottom: 31px; width: 20px; height: 20px; margin-left: -10px;
+  position: absolute; bottom: 53px; width: 20px; height: 20px; margin-left: -10px;
   border-radius: 4px; transform: rotate(45deg);
   background: var(--card); border: 3px solid #cfc5ad;
   transition: background 0.4s, border-color 0.4s;
 }
 .track__pip--done { background: var(--gold-500); border-color: #a8861b; }
-.track__flag { position: absolute; right: -50px; bottom: 26px; font-size: 34px; line-height: 1; }
+.track__flag { position: absolute; right: -50px; bottom: 48px; font-size: 34px; line-height: 1; }
 .lane--finished .track__flag { animation: flag-wave 0.8s ease-in-out infinite alternate; transform-origin: bottom left; }
 @keyframes flag-wave { from { transform: rotate(-6deg); } to { transform: rotate(8deg); } }
-.track__zones { position: absolute; left: 0; right: 0; bottom: 4px; height: 24px; display: flex; }
+.track__zones { position: absolute; left: 0; right: 0; bottom: 2px; height: 46px; display: flex; }
 .track__zone {
   flex: 1 1 0; text-align: center; font-size: 14px; font-weight: 700;
   color: #aaa390; white-space: nowrap; overflow: hidden;
 }
 .track__zone--done { color: #8f7219; }
+.track__zone-split {
+  font-family: var(--mono); font-size: 17px; font-weight: 800; line-height: 1.3;
+  color: var(--card-ink); font-variant-numeric: tabular-nums; min-height: 22px;
+}
+.track__zone-split:not(:empty)::before { content: "⏱ "; font-size: 13px; opacity: 0.6; }
 .track__zone--current { color: var(--card-ink); }
 .track__zone--current .track__zone-name { text-decoration: underline; text-decoration-color: var(--team); text-decoration-thickness: 3px; text-underline-offset: 4px; }
 
 /* ---- Runner: the stick figure + its speech bubble -------------------- */
 .runner {
-  position: absolute; bottom: 42px; left: 0; width: var(--fig-w); height: var(--fig-h);
+  position: absolute; bottom: 64px; left: 0; width: var(--fig-w); height: var(--fig-h);
   margin-left: calc(var(--fig-w) / -2);
   transition: left 2.4s cubic-bezier(0.45, 0, 0.25, 1);
   z-index: 2;
