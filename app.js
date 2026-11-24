@@ -65,6 +65,8 @@
       // /follow/ page. null/absent just means nobody's invited anyone;
       // the game plays exactly as before either way.
       roomCode: null,
+      // Which start/finish times have reached the room doc (syncRoomTimes).
+      roomTimesSent: null,
       // True between tapping "Begin the Rebuild" and actually starting
       // Stage 1 — shows the team-invite QR screen so everyone can join
       // before the facilitator gives the go-ahead. currentView stays 0
@@ -168,6 +170,32 @@
   function syncRoomStage(view) {
     if (!state.roomCode || !window.CPFRoomSync) return;
     window.CPFRoomSync.advanceStage(state.roomCode, view);
+    syncRoomTimes();
+  }
+
+  // Sends the team's start/finish times to the room for the facilitator
+  // scoreboard, once each. Separate from the stage write and failure-
+  // tolerant: if the Firestore rules don't allow these fields yet, the
+  // write is refused, nothing else is affected, and it's retried at the
+  // next stage change.
+  var roomTimesInFlight = false;
+  function syncRoomTimes() {
+    if (!state.roomCode || !window.CPFRoomSync || !window.CPFRoomSync.setRoomTimes || roomTimesInFlight) return;
+    var sent = state.roomTimesSent || {};
+    var times = {};
+    if (state.startedAt && sent.startedAtMs !== state.startedAt) times.startedAtMs = state.startedAt;
+    if (state.completedAt && sent.finishedAtMs !== state.completedAt) times.finishedAtMs = state.completedAt;
+    if (!Object.keys(times).length) return;
+    roomTimesInFlight = true;
+    window.CPFRoomSync.setRoomTimes(state.roomCode, times)
+      .then(function () {
+        state.roomTimesSent = Object.assign({}, state.roomTimesSent || {}, times);
+        save();
+      })
+      .catch(function (e) {
+        console.warn("room-sync: couldn't record times (rules not updated yet?)", e);
+      })
+      .then(function () { roomTimesInFlight = false; });
   }
 
   // Creates a room the first time a team starts (view 0 -> 1), so

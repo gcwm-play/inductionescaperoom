@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#081a33" />
+<meta name="robots" content="noindex" />
+<title>Live Scoreboard · Operation Board Briefing</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B2545'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23D4AF37'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="scoreboard.css?v=20261124a" />
+</head>
+<body>
+<div class="sb" id="sb">
+  <header class="sb-head">
+    <div class="sb-brand">
+      <span class="sb-logo">C</span>
+      <div>
+        <div class="sb-eyebrow">Operation Board Briefing</div>
+        <h1 class="sb-title">Live Scoreboard</h1>
+      </div>
+    </div>
+    <div class="sb-meta">
+      <div class="sb-clock" id="sbClock">--:--</div>
+      <div class="sb-sub"><span id="sbDate"></span> · <span id="sbCounts">0 teams</span></div>
+    </div>
+    <div class="sb-tools">
+      <span class="sb-status" id="sbStatus">Connecting…</span>
+      <button class="sb-btn" id="soundBtn" type="button" aria-pressed="false" title="Play a chime with each announcement">🔕 Sound off</button>
+      <button class="sb-btn" id="manageBtn" type="button" title="Drop or add teams">⚙ Teams</button>
+      <button class="sb-btn" id="fullBtn" type="button" title="Full screen">⛶</button>
+    </div>
+  </header>
+
+  <div class="sb-toasts" id="sbToasts" aria-live="polite"></div>
+
+  <main class="sb-lanes" id="sbLanes"></main>
+
+  <footer class="sb-feed">
+    <span class="sb-feed__label">Latest</span>
+    <div class="sb-feed__items" id="sbFeed"><span class="sb-feed__empty">Announcements appear here as teams crack each stage.</span></div>
+  </footer>
+</div>
+
+<div class="sb-panel" id="sbPanel" hidden>
+  <div class="sb-panel__box" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+    <div class="sb-panel__head">
+      <h2 id="panelTitle">Teams on the board</h2>
+      <button class="sb-btn" id="panelClose" type="button">Done</button>
+    </div>
+    <p class="sb-panel__lead">Teams appear here as soon as they name themselves in the game. Drop any that were created by mistake.</p>
+    <div id="panelList"></div>
+    <h3>Add a team</h3>
+    <p class="sb-panel__lead">For a team started on another day, or one you dropped by mistake. The room code is on the leader's phone, in the 👥 badge at the top.</p>
+    <form class="sb-add" id="addForm">
+      <input id="addInput" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Room code" aria-label="Room code" />
+      <button class="sb-btn sb-btn--gold" type="submit">Add team</button>
+    </form>
+    <div class="sb-panel__msg" id="addMsg"></div>
+    <div class="sb-panel__msg" id="rulesMsg"></div>
+  </div>
+</div>
+
+<script src="../firebase-config.js"></script>
+<script type="module" src="../room-sync.js?v=20261124a"></script>
+<script src="../content.js?v=20261124a"></script>
+<script src="figure.js?v=20261124a"></script>
+<script src="scoreboard.js?v=20261124a"></script>
+</body>
+</html>

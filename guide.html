@@ -126,6 +126,7 @@
     <a href="#prepare">Before the session</a>
     <a href="#start">Starting a team</a>
     <a href="#follow">Teammates following along</a>
+    <a href="#scoreboard">Live scoreboard</a>
     <a href="#stages">Stage by stage</a>
     <a href="#answers">Answer key</a>
     <a href="#datarun">Optional: Data Run</a>
@@ -144,6 +145,7 @@
         <a href="index.html" target="_blank">📱 The game</a>
         <a href="follow/index.html" target="_blank">👥 Follow page</a>
         <a href="tilt-maze/index.html" target="_blank">🌀 Code Maze</a>
+        <a href="scoreboard/index.html" target="_blank">🏁 Scoreboard</a>
         <a href="#answers">🗝️ Answer key</a>
         <a href="#shortcuts">⌨️ Hidden controls</a>
       </div>
@@ -230,8 +232,31 @@
       <div class="tip"><b>The game does not depend on this.</b> If the network blocks live following, the leader's phone still runs every stage. Teams then share the one screen, or use the read-aloud button (🔊).</div>
     </section>
 
+    <section id="scoreboard">
+      <h2><span class="n">4</span>Live scoreboard</h2>
+      <p class="lead">A screen for the projector that shows every team racing through the five stages, live. Open <a href="scoreboard/index.html" target="_blank">scoreboard/</a> on the laptop connected to the projector.</p>
+      <figure class="shot"><a href="guide-img/scoreboard.jpg" target="_blank" title="Open full size"><img src="guide-img/scoreboard.jpg" width="1920" height="1080" loading="lazy" alt="The live scoreboard: four teams as lanes, each with a stick figure on a five-stage track, a timer and the current stage."></a><figcaption>Four teams in demo mode. The Kopi Kakis have just solved a stage and are running to the next one.</figcaption></figure>
+      <ul>
+        <li><b>Who appears.</b> Every team whose leader has named the team in the game today, in the order they are ranked: furthest along first, then whoever got there first. Finished teams are ranked by time.</li>
+        <li><b>The figures.</b> Each team's stick figure stands at the start line until the team begins, thinks with a "?" while working on a stage, jumps with surprise when they solve one, runs to the next stage, stumbles if another team overtakes them, and celebrates at the flag when they finish. Its speech bubble says what the team is doing ("Decoding…", "Steering the maze…") without giving away any answers.</li>
+        <li><b>Announcements.</b> A banner such as "Team Kaya Toast has solved Stage 1!" appears for each step, and the strip at the bottom keeps the latest ones. Tap <span class="ui">🔕 Sound off</span> to turn on a chime with each banner.</li>
+        <li><b>Timers</b> run from the moment the leader taps the gold start button, and stop at the final screen, matching the time on the team's own phone. A team whose phone hasn't moved on for 90 minutes is marked Inactive and its timer stops.</li>
+        <li><b>Full screen.</b> Tap <span class="ui">⛶</span> at the top right.</li>
+      </ul>
+      <h3>Dropping or adding a team</h3>
+      <p>Tap <span class="ui">⚙ Teams</span>. <span class="ui">Drop</span> takes a team off the board, for example one created by mistake or by someone testing. Dropped teams are listed underneath with <span class="ui">Restore</span>. To add a team that isn't showing, such as one started on another day, type its 6-character room code (shown in the 👥 badge on the leader's phone) and tap <span class="ui">Add team</span>.</p>
+      <div class="tip"><b>Rehearse or test the projector</b> with <a href="scoreboard/index.html?demo=1" target="_blank">scoreboard/?demo=1</a>. Four made-up teams play themselves, and nothing is read or written online. To look back at another day, add <code>?date=2026-11-24</code> (that day's date) to the address.</div>
+      <h3>One-time set-up: update the Firebase rules</h3>
+      <p>Without this the scoreboard still works, but timers are estimates (marked ≈) and a dropped team is only hidden on the screen where you dropped it. To fix both:</p>
+      <ol class="steps">
+        <li>Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase console</a>, choose the escape room project, then <span class="ui">Firestore Database</span> and the <span class="ui">Rules</span> tab.</li>
+        <li>Find the line starting <code>allow update</code> and replace it (with the line after it) so it reads:<br><code>allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stageIndex','updatedAt','startedAtMs','finishedAtMs','hidden']);</code></li>
+        <li>Tap <span class="ui">Publish</span>. Teams that start after this get exact timers.</li>
+      </ol>
+    </section>
+
     <section id="stages">
-      <h2><span class="n">4</span>Stage by stage</h2>
+      <h2><span class="n">5</span>Stage by stage</h2>
       <p class="lead">What the team sees and does at each stage, and what you need to do.</p>
       <div class="tbl"><table>
         <thead><tr><th>Stage</th><th>What the team does</th><th>Prop</th><th>Your part</th></tr></thead>
@@ -373,7 +398,7 @@
     </section>
 
     <section id="answers">
-      <h2><span class="n">5</span>Answer key</h2>
+      <h2><span class="n">6</span>Answer key</h2>
       <p class="lead">Kept closed so it is not on screen by accident. Answers are not case-sensitive.</p>
       <details class="key">
         <summary>Show all answers</summary>
@@ -396,7 +421,7 @@
     </section>
 
     <section id="datarun">
-      <h2><span class="n">6</span>Optional: Data Run</h2>
+      <h2><span class="n">7</span>Optional: Data Run</h2>
       <p class="lead">A separate mini-game that is not part of the five stages. Use it as a side challenge or a tie-breaker, or leave it out.</p>
       <p>One team member "runs to a far-away storeroom" by reaching a count of 500 on the phone. There are two modes:</p>
       <div class="grid">
@@ -410,7 +435,7 @@
     </section>
 
     <section id="shortcuts">
-      <h2><span class="n">7</span>Hidden controls</h2>
+      <h2><span class="n">8</span>Hidden controls</h2>
       <p class="lead">Things the app can do that participants are not told about.</p>
       <div class="tbl"><table>
         <thead><tr><th>Where</th><th>Do this</th><th>What happens</th></tr></thead>
@@ -421,6 +446,7 @@
           <tr><td>Game link</td><td>Add <code>?reset=1</code> to the end of the address</td><td>Resets at once, with <b>no</b> confirmation. Handy as a "clean start" QR code for your own use.</td></tr>
           <tr><td>Any game screen</td><td>Tap the <span class="ui">👥 CODE</span> badge at the top</td><td>Shows the invite QR code and room code again</td></tr>
           <tr><td>Any game screen</td><td>Tap <span class="ui">🔊</span> at the top right</td><td>Reads the screen aloud. Tap again to stop. Only shown on phones that support it.</td></tr>
+          <tr><td>Scoreboard</td><td>Add <code>?demo=1</code> or <code>?date=YYYY-MM-DD</code> to its address</td><td>A self-playing demo, or the teams from another day</td></tr>
           <tr><td>Follow page</td><td>Tap <span class="ui">Follow a different team</span></td><td>Forgets the current room and asks for a new code</td></tr>
           <tr><td>Code Maze</td><td>Tap <span class="ui">↺</span> on the maze</td><td>Recalibrates "level" to how the phone is held right now</td></tr>
           <tr><td>Code Maze</td><td>Tick <span class="ui">Show sensor debug values</span>, or use <kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> on a laptop</td><td>Shows the raw tilt readings, or lets you test the maze without a phone</td></tr>
@@ -430,7 +456,7 @@
     </section>
 
     <section id="after">
-      <h2><span class="n">8</span>Between teams and after</h2>
+      <h2><span class="n">9</span>Between teams and after</h2>
       <p class="lead">Progress lives on each leader's phone. A phone that has finished, or half-finished, must be reset before it is used again.</p>
       <h3>Between teams</h3>
       <ol class="steps">
@@ -449,7 +475,7 @@
     </section>
 
     <section id="trouble">
-      <h2><span class="n">9</span>Troubleshooting</h2>
+      <h2><span class="n">10</span>Troubleshooting</h2>
       <div class="tbl"><table>
         <thead><tr><th>Problem</th><th>What to do</th></tr></thead>
         <tbody>
@@ -464,13 +490,15 @@
           <tr><td>The Code Maze ball does not move</td><td>Motion access was not allowed. Reload the maze, tap <span class="ui">Start</span> and choose Allow. If it still fails, try another phone.</td></tr>
           <tr><td>The Code Maze ball drifts to one side</td><td>Hold the device level and tap <span class="ui">↺</span>.</td></tr>
           <tr><td>A screen says "Something went wrong showing this puzzle"</td><td>Tap <span class="ui">Reset My Progress</span> on that screen, then re-enter the answers so far.</td></tr>
+          <tr><td>A test team or a duplicate shows on the scoreboard</td><td>Tap <span class="ui">⚙ Teams</span> and <span class="ui">Drop</span> it.</td></tr>
+          <tr><td>Scoreboard timers show ≈, or a dropped team reappears on another screen</td><td>The Firebase rules haven't been updated yet. See <a href="#scoreboard">Live scoreboard</a>.</td></tr>
           <tr><td>A team cannot find their second task</td><td>Stages 3 and 4 have a second card below the first. Ask them to scroll down.</td></tr>
         </tbody>
       </table></div>
     </section>
 
     <section id="built">
-      <h2><span class="n">10</span>How this app was built</h2>
+      <h2><span class="n">11</span>How this app was built</h2>
       <p class="lead">The escape room was described in plain English and written by an AI coding assistant. Every change in the project's history, about 60 of them between 27 August and 13 November 2026, was made by the assistant. The human side was deciding what the game should be, playing it on real phones, running it with a real team, and saying what to change.</p>
 
       <h3>The toolkit</h3>
@@ -505,6 +533,7 @@
         <li><b class="when">6 Nov</b> Followers began seeing Stage 4's answers once the leader confirms them.</li>
         <li><b class="when">9 Nov</b> One box per digit for the Stage 1 code, a more celebratory final screen, and the invite screen that holds teams until the facilitator's signal.</li>
         <li><b class="when">13 Nov</b> This guide.</li>
+        <li><b class="when">24 Nov</b> The live scoreboard for the projector, with a stick figure per team, redrawn from a character sheet of poses: at rest, running, thinking and three kinds of surprise.</li>
       </ul>
 
       <h3>Build your own: a starter recipe</h3>

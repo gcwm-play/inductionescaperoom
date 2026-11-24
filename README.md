@@ -14,6 +14,9 @@ they pick up exactly where they left off.
 (set-up checklist, stage-by-stage flow, answer key, troubleshooting). It
 contains the answers and is deliberately not linked from the game.
 
+**Live scoreboard for the projector:** [`scoreboard/`](scoreboard/) (add
+`?demo=1` for a self-playing demo). Set-up notes are in the guide.
+
 ## How it's built
 
 Plain HTML/CSS/JS, no build step, no external dependencies or CDN calls —

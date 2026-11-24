@@ -11,7 +11,8 @@
  * CPFRoomSync at that point, only from later event handlers.
  *
  * Firestore document shape, collection "rooms", doc id = room code:
- *   { teamName: string, stageIndex: number, createdAt, updatedAt, expiresAt }
+ *   { teamName: string, stageIndex: number, createdAt, updatedAt, expiresAt,
+ *     startedAtMs?, finishedAtMs?, hidden? }
  *
  * expiresAt lets a Firestore TTL policy delete old rooms automatically
  * (Firestore -> TTL -> collection group "rooms", field "expiresAt"). It is
@@ -19,6 +20,13 @@
  * of hours, so this leaves a wide margin and a room is never deleted while
  * a team is still playing. Rooms created before this field existed have no
  * expiresAt and are never deleted automatically.
+ *
+ * startedAtMs/finishedAtMs are the leader phone's own clock readings
+ * (the same ones its finale screen uses), for the facilitator
+ * scoreboard's timers. hidden is set from the scoreboard to drop a team
+ * created by mistake. All three need the updated Firestore rules (see
+ * the facilitator guide); without them those writes are refused and
+ * everything else carries on as before.
  * Deliberately minimal — puzzle text itself lives in content.js on every
  * device already; only "which stage is the team on" needs to sync.
  */
@@ -30,7 +38,11 @@ import {
   updateDoc,
   onSnapshot,
   serverTimestamp,
-} from "./vendor/firebase-firestore.bundle.js";
+  collection,
+  query,
+  where,
+  Timestamp,
+} from "./vendor/firebase-firestore.bundle.js?v=20261124a";
 
 var app = null;
 var db = null;
@@ -103,9 +115,50 @@ function subscribeRoom(roomCode, onUpdate, onError) {
   );
 }
 
+// Records when the team started and finished, from the leader's phone.
+// Kept separate from advanceStage so that if the rules refuse these
+// fields, stage syncing is unaffected. Rejects on failure so the caller
+// can retry later. Never touches updatedAt (followers time Stage 4's
+// hints from it).
+async function setRoomTimes(roomCode, times) {
+  if (!roomCode) return;
+  var ref = doc(ensureDb(), "rooms", roomCode);
+  await updateDoc(ref, times);
+}
+
+// Drops (hidden: true) or restores a team on the facilitator scoreboard.
+async function setRoomHidden(roomCode, hidden) {
+  var ref = doc(ensureDb(), "rooms", roomCode);
+  await updateDoc(ref, { hidden: !!hidden });
+}
+
+// Live list of every room created in [fromDate, toDate). onRooms gets an
+// array of { code, ...roomData }. Returns an unsubscribe function.
+function subscribeRoomsBetween(fromDate, toDate, onRooms, onError) {
+  var q = query(
+    collection(ensureDb(), "rooms"),
+    where("createdAt", ">=", Timestamp.fromDate(fromDate)),
+    where("createdAt", "<", Timestamp.fromDate(toDate))
+  );
+  return onSnapshot(
+    q,
+    function (snap) {
+      onRooms(snap.docs.map(function (d) {
+        return Object.assign({ code: d.id }, d.data());
+      }));
+    },
+    function (err) {
+      if (onError) onError(err);
+    }
+  );
+}
+
 window.CPFRoomSync = {
   createRoom: createRoom,
   advanceStage: advanceStage,
   subscribeRoom: subscribeRoom,
+  setRoomTimes: setRoomTimes,
+  setRoomHidden: setRoomHidden,
+  subscribeRoomsBetween: subscribeRoomsBetween,
   generateRoomCode: generateRoomCode,
 };
