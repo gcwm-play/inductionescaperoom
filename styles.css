@@ -172,7 +172,10 @@ p { line-height: 1.55; margin: 0 0 10px; color: var(--ink-soft); }
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow);
+  aspect-ratio: 1;
 }
+.challenge-qr svg { display: block; width: 100%; height: auto; }
+.challenge-qr a { font-size: 0.8rem; word-break: break-all; }
 
 .eyebrow {
   text-transform: uppercase;

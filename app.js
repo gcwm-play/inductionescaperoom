@@ -627,6 +627,30 @@
     }
   }
 
+  // Absolute address of another page of this site, e.g. the Code Maze,
+  // worked out from wherever this page is being served.
+  function pageUrlFor(relPath) {
+    return new URL(relPath, window.location.href).toString().replace(/index\.html$/, "");
+  }
+
+  // Draws a QR into every empty [data-qr-url] element under root. The
+  // QR library is a module script that can finish loading just after the
+  // first render (e.g. reloading straight into Stage 4), so retry
+  // briefly; if it never loads, show the address as a link instead.
+  function fillQrCodes(root, attempt) {
+    var slots = root.querySelectorAll("[data-qr-url]:empty");
+    if (!slots.length) return;
+    if (!window.CPFQRCode && (attempt || 0) < 40) {
+      setTimeout(function () { fillQrCodes(root, (attempt || 0) + 1); }, 150);
+      return;
+    }
+    Array.prototype.forEach.call(slots, function (slot) {
+      var url = slot.getAttribute("data-qr-url");
+      var svg = buildRoomQrSvg(url);
+      slot.innerHTML = svg || '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + "</a>";
+    });
+  }
+
   function openRoomInviteOverlay() {
     var qrSvg = buildRoomQrSvg(followUrlFor(state.roomCode));
 
@@ -1279,8 +1303,10 @@
       .replace("{projects}", bCorrect ? pd.b : "__");
 
     function challengeCard(idPrefix, challenge, correct, currentVal) {
-      var qrHtml = challenge.qrImage
-        ? '<img class="challenge-qr" src="' + esc(challenge.qrImage) + '" alt="QR code linking to the ' + esc(challenge.label) + ' puzzle" />'
+      // The QR is drawn from this page's own address (see fillQrCodes),
+      // so it keeps working wherever the site is hosted.
+      var qrHtml = challenge.link
+        ? '<div class="challenge-qr" data-qr-url="' + esc(pageUrlFor(challenge.link)) + '" role="img" aria-label="QR code linking to the ' + esc(challenge.label) + ' puzzle"></div>'
         : "";
       var bodyHtml = challenge.steps
         ? "<ol>" + challenge.steps.map(function (step) { return "<li>" + esc(step) + "</li>"; }).join("") + "</ol>"
@@ -1315,6 +1341,8 @@
         ? '<button class="btn btn--primary" id="s4continue" style="margin-top:14px">' + esc(s.continueButton) + "</button>"
         : "") +
       "</div>";
+
+    fillQrCodes(wrap);
 
     if (!aCorrect) {
       runHintCountdown(pd.startedAt);
